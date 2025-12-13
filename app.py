@@ -165,16 +165,24 @@ def send_reset_email(email, token):
 
 #重設密碼組
 @app.route("/forgot_password", methods=["GET"])
-def forgot_password_html():
+def forgot_password_page():
+    """顯示忘記密碼的表單頁面。"""
     return render_template("forgot_password.html")
-
-def forgot_password():
+@app.route("/api/forgot_password", methods=["POST"])
+def forgot_password_api():
+    """處理前端提交的 Email，生成 Token 並發送重設郵件。"""
+    
+    # 這是您原有的 forgot_password() 函式邏輯
     data = request.get_json()
     email = data.get("email")
 
+    if not email:
+        return jsonify({"success": False, "message": "缺少 Email 欄位"}), 400
+
     user = users.find_one({"email": email})
     if not user:
-        return jsonify({"success": False, "message": "此 email 未註冊"})
+        # 出於安全考量，通常不透露該 Email 是否存在，但為了除錯，我們保留您的訊息
+        return jsonify({"success": False, "message": "此 Email 未註冊"}), 404 
 
     token = str(uuid.uuid4())
 
@@ -183,11 +191,10 @@ def forgot_password():
         {"$set": {"reset_token": token}}
     )
 
+    # 確保 send_reset_email 函式存在並運作
     send_reset_email(email, token)
 
     return jsonify({"success": True, "message": "重設密碼連結已寄出"})
-
-
 @app.route("/api/reset_password", methods=["POST"])
 def reset_password():
     data = request.get_json()
