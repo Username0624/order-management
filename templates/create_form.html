@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>建立表單</title>
+</head>
+<body>
+
+  <h2>建立新表單</h2>
+
+  <label>表單名稱</label><br>
+  <input id="title"><br><br>
+
+  表單簡介：<br>
+  <textarea id="description"></textarea><br><br>
+
+  <h4>選擇可用欄位（必填欄位固定）</h4>
+
+  <label><input type="checkbox" id="f_remittance"> 是否以匯款（checkbox）</label><br>
+  <label><input type="checkbox" id="f_shipped"> 商家是否出貨（出貨會記錄日期）</label><br>
+
+  <label><input type="checkbox" id="f_shipping_fee"> 運費</label><br>
+
+  <!-- ⭐⭐ 新增欄位：運費是否併入匯款總額 ⭐⭐ -->
+  <label><input type="checkbox" id="f_merge_shipping"> 運費是否併入匯款總額</label><br>
+
+  <label><input type="checkbox" id="f_buyer_social"> 買家社群（僅賣家可見）</label><br><br>
+
+  <button id="createBtn">建立</button>
+  <button onclick="location.href='/dashboard'">取消</button>
+
+  <script src="/static/api.js"></script>
+  <script>
+    const owner_id = localStorage.getItem("user_id");
+    const owner_email = localStorage.getItem("email");
+
+    document.getElementById("createBtn").addEventListener("click", async ()=>{
+
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+
+      if(!title) return alert("請輸入表單名稱");
+
+      // ⭐ fields 加上 merge_shipping
+      const fields = {
+        remittance: document.getElementById("f_remittance").checked,
+        shipped: document.getElementById("f_shipped").checked,
+        shipping_fee: document.getElementById("f_shipping_fee").checked,
+        merge_shipping: document.getElementById("f_merge_shipping").checked,   // <-- 新增
+        buyer_social: document.getElementById("f_buyer_social").checked
+      };
+
+      // ⭐ create API 多帶 description
+      const res = await apiCreateForm(owner_id, owner_email, title, description, fields);
+
+      if(res.success){
+        alert("建立成功！");
+        location.href = "/dashboard";
+      } else {
+        alert("建立失敗");
+      }
+    });
+  </script>
+
+</body>
+</html>

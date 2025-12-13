@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>Dashboard</title></head>
+<div style="position: fixed; top: 10px; right: 10px;">
+  <button onclick="logout()">登出</button>
+</div>
+
+<body>
+  <h2>您好，<span id="usernameDisplay"></span>
+    <button id="changeNameBtn">更改名稱</button>
+  </h2>
+
+  <div id="changeArea" style="display:none;">
+    <input id="newName" placeholder="新名稱">
+    <button id="saveName">儲存</button>
+    <button id="cancelName">取消</button>
+  </div>
+
+  <hr>
+
+  <h3>我的表單（賣家） <button id="createFormBtn">新增表單</button></h3>
+  <ul id="ownedList"></ul>
+
+  <h3>我被授權的表單（買家）</h3>
+  <ul id="viewableList"></ul>
+
+<script src="/static/api.js"></script>
+<script>
+const user_id = localStorage.getItem("user_id");
+const username = localStorage.getItem("username");
+const email = localStorage.getItem("email");
+document.getElementById("usernameDisplay").innerText = username || "";
+
+document.getElementById("changeNameBtn").addEventListener("click", ()=>{
+  document.getElementById("changeArea").style.display = "block";
+  document.getElementById("newName").value = username || "";
+});
+document.getElementById("cancelName").addEventListener("click", ()=> document.getElementById("changeArea").style.display="none");
+document.getElementById("saveName").addEventListener("click", async ()=>{
+  const newName = document.getElementById("newName").value;
+  if(!newName) return alert("請輸入名稱");
+  const res = await apiUpdateUsername(user_id, newName);
+  if(res.success){
+    localStorage.setItem("username", res.username);
+    document.getElementById("usernameDisplay").innerText = res.username;
+    document.getElementById("changeArea").style.display = "none";
+  } else alert("更新失敗");
+});
+
+document.getElementById("createFormBtn").addEventListener("click", ()=> location.href="/create_form");
+
+async function load(){
+  const data = await apiGetMyForms(user_id);
+  const owned = data.owned || [];
+  const viewable = data.viewable || [];
+  const ownedList = document.getElementById("ownedList");
+  const viewList = document.getElementById("viewableList");
+
+  // 賣家表單
+  ownedList.innerHTML = "";
+  owned.forEach(f=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${f.title}</strong><br>
+
+      <button onclick="openForm('${f._id}','owner')">編輯/查看</button>
+      <button onclick="manageViewers('${f._id}')">管理檢視者</button>
+      <button onclick="deleteForm('${f._id}')">刪除表單</button>
+    `;
+    ownedList.appendChild(li);
+  });
+
+  // 買家表單
+  viewList.innerHTML = "";
+  viewable.forEach(f=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${f.title}</strong><br>
+
+      <button onclick="openForm('${f._id}','viewer')">查看</button>
+    `;
+    viewList.appendChild(li);
+  });
+}
+
+window.openForm = function(fid, role){
+  localStorage.setItem("form_id", fid);
+  localStorage.setItem("form_role", role);
+  location.href = "/form";
+}
+
+window.manageViewers = function(fid){
+  const email = prompt("輸入要加入的 buyer 的 Email（此 email 必須已註冊）");
+  if(!email) return;
+  apiAddViewer(fid, user_id, email).then(res=>{
+    if(res.success) { alert("加入成功"); load(); }
+    else alert(res.message || "加入失敗");
+  });
+}
+
+window.deleteForm = function(fid){
+  if(!confirm("確定刪除此表單？此動作無法回復")) return;
+  fetch(`${API_BASE}/api/delete_form`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({form_id: fid, owner_id: user_id})
+  }).then(r=>r.json()).then(res=>{
+    if(res.success) load(); else alert("刪除失敗");
+  });
+}
+
+// 初始化
+load();
+</script>
+</body>
+</html>

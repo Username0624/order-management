@@ -1,0 +1,114 @@
+/* 通用設定 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+}
+
+/* 中央卡片布局 */
+form, .container {
+    background: #ffffff;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* 標題 */
+h2, h3 {
+    text-align: center;
+    color: #333;
+}
+
+/* 輸入框 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"]{
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* 按鈕 */
+button {
+    width: 100%;
+    padding: 10px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #2563eb;
+}
+
+/* 錯誤訊息/一般訊息 */
+#msg {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: bold;
+    color: #d9534f;
+}
+
+/* 表單列表 */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    background: white;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+
+/* in li 的按鈕改成小型 */
+ul li button {
+    width: auto;
+    margin-left: 10px;
+}
+
+/* 資料表格 */
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+th {
+    background: #e5e7eb;
+}
+
+tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+/* 表單中的新增列區塊 */
+#addRowArea {
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+/* 兩個小按鈕 */
+#addBtn,
+#clearBtn {
+    margin-top: 10px;
+}

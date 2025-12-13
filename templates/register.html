@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>註冊</title>
+</head>
+<body>
+<h2>註冊帳號</h2>
+
+<form id="registerForm">
+    <label>使用者名稱：</label><br>
+    <input type="text" id="username" required><br><br>
+
+    <label>Email：</label><br>
+    <input type="email" id="email" required><br><br>
+
+    <label>密碼：</label><br>
+    <input type="password" id="password" required><br><br>
+
+    <button type="submit">註冊</button>
+</form>
+
+<!-- 返回登入按鈕 -->
+<p>已經有帳號？ <button id="toLogin">返回登入</button></p>
+
+<p id="msg"></p>
+
+<script src="/static/api.js"></script>
+
+<script>
+    // 註冊事件
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const result = await apiRegister(
+            username.value,
+            email.value,
+            password.value
+        );
+
+        msg.innerText = result.message || result.error;
+
+        if(result.success){
+            // 註冊成功，1秒後跳回登入頁
+            setTimeout(() => location.href = "login", 1000);
+        }
+    });
+
+    // 返回登入按鈕事件
+    document.getElementById("toLogin").addEventListener("click", () => {
+        location.href = "login";
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>登入</title>
+</head>
+<body>
+
+<h2>登入帳號</h2>
+
+<form id="loginForm">
+    <label>Email：</label><br>
+    <input type="email" id="email" required><br><br>
+
+    <label>密碼：</label><br>
+    <input type="password" id="password" required><br><br>
+
+    <button type="submit">登入</button>
+</form>
+
+<!-- 新增註冊按鈕 -->
+<p>沒有帳號？ <button id="toRegister">註冊帳號</button></p>
+<a href="/forgot_password" style="display:block; margin-top:10px;">忘記密碼？</a>
+
+<p id="msg"></p>
+
+<script src="/static/api.js"></script>
+
+<script>
+    // 登入事件
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const result = await apiLogin(email.value, password.value);
+        msg.innerText = result.message || result.error;
+
+        if(result.user_id){
+            localStorage.setItem("user_id", result.user_id);
+            localStorage.setItem("username", result.username);
+
+            location.href = "dashboard";  // 登入成功跳轉 dashboard
+        }
+    });
+
+    // 註冊按鈕事件
+    document.getElementById("toRegister").addEventListener("click", () => {
+        location.href = "register";
+    });
+</script>
+
+</body>
+</html>

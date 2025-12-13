@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>表單內容</title></head>
+
+<div style="position: fixed; top: 10px; right: 10px;">
+  <button onclick="logout()">登出</button>
+</div>
+
+<body>
+  <h2 id="formTitle">表單</h2>
+
+  <!-- 表單簡介顯示區 -->
+  <div style="margin-bottom:8px;">
+    <span id="formDescription" style="font-size:14px; color:#444;"></span>
+    <button id="editDescBtn" style="margin-left:10px; display:none;">編輯簡介</button>
+  </div>
+
+  <!-- 編輯區 -->
+  <div id="descEditArea" style="display:none; margin-bottom:12px;">
+    <textarea id="descInput" rows="4" cols="60"></textarea><br>
+    <button id="saveDescBtn">儲存簡介</button>
+    <button id="cancelDescBtn">取消</button>
+  </div>
+
+  <div id="roleInfo"></div>
+  <div id="summaryArea"></div>
+
+  <table border="1" id="table">
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div id="addArea">
+    <h3>新增一列</h3>
+    <div id="addInputs"></div>
+    <button id="addBtn">新增</button>
+    <button id="clearBtn">清空全部</button>
+  </div>
+
+  <button onclick="location.href='/dashboard'">回 Dashboard</button>
+
+<script src="/static/api.js"></script>
+<script>
+const form_id = localStorage.getItem("form_id");
+const user_id = localStorage.getItem("user_id");
+const user_email = localStorage.getItem("email");
+let currentForm = null;
+let isOwner = false;
+
+async function build(){
+  const res = await apiGetForm(form_id, user_id);
+  if(!res.success){
+    alert(res.message || "讀取失敗");
+    location.href = "/dashboard";
+    return;
+  }
+
+  currentForm = res.form;
+  isOwner = res.is_owner;
+
+console.log("後端回傳 fields =", currentForm.fields);
+
+
+
+  document.getElementById("formTitle").innerText = currentForm.title || "表單";
+  document.getElementById("formDescription").innerText =
+      currentForm.description ? ("表單簡介： " + currentForm.description) : "（無簡介）";
+
+  const editBtn = document.getElementById("editDescBtn");
+  if(isOwner){
+    editBtn.style.display = "inline-block";
+    editBtn.onclick = () => {
+      document.getElementById("descInput").value = currentForm.description || "";
+      document.getElementById("descEditArea").style.display = "block";
+      editBtn.style.display = "none";
+    };
+  } else {
+    editBtn.style.display = "none";
+    document.getElementById("descEditArea").style.display = "none";
+  }
+
+  document.getElementById("saveDescBtn").onclick = async () => {
+    const newDesc = document.getElementById("descInput").value;
+    const r = await apiUpdateFormDescription(form_id, newDesc);
+    if(r && r.success){
+      alert("簡介已更新");
+      document.getElementById("descEditArea").style.display = "none";
+      build();
+    } else {
+      alert("更新失敗");
+    }
+  };
+  document.getElementById("cancelDescBtn").onclick = () => {
+    document.getElementById("descEditArea").style.display = "none";
+    if(isOwner) editBtn.style.display = "inline-block";
+  };
+
+  document.getElementById("roleInfo").innerText =
+      isOwner ? "您是賣家（可編輯）" : "您是買家（僅檢視您自己的訂單）";
+
+  renderStructure(currentForm.fields, isOwner);
+  renderRows(currentForm.rows, isOwner);
+  renderSummary(res.summary_by_buyer);
+
+  if(isOwner){
+    const rb = await apiRecentBuyers(form_id);
+    window.recentBuyers = rb.recent_buyers || [];
+    buildBuyerAutocomplete();
+  } else {
+    document.getElementById("addArea").style.display = "none";
+  }
+}
+
+function renderSummary(summary){
+  const area = document.getElementById("summaryArea");
+  area.innerHTML = "<h4>買家總計</h4>";
+  for(const name in summary){
+    area.innerHTML += `<div>${name}: ${summary[name].toFixed(2)} 元</div>`;
+  }
+}
+
+function renderStructure(fields, owner){
+  const thead = document.getElementById("thead");
+  const addInputs = document.getElementById("addInputs");
+  thead.innerHTML = ""; addInputs.innerHTML = "";
+
+  const cols = [
+    {k:"buyer_name", label:"買家"},
+    {k:"buyer_email", label:"買家 Email"},
+    {k:"item_name", label:"物品名稱"},
+    {k:"item_qty", label:"數量"},
+    {k:"item_price", label:"單價"},
+    {k:"item_total", label:"須匯款金額"}
+  ];
+  if(fields.remittance) cols.push({k:"remittance", label:"已匯款"});
+  if(fields.shipped) cols.push({k:"shipped", label:"出貨日期"});
+  if(fields.shipping_fee) cols.push({k:"shipping_fee", label: currentForm.fields.merge_shipping ? "運費" : "運費(需二補)"});
+  if(fields.buyer_social && owner) cols.push({k:"buyer_social", label:"買家社群（僅賣家可見）"});
+  cols.push({k:"actions", label:"操作"});
+
+  let tr = "<tr>";
+  cols.forEach(c=> tr += `<th>${c.label}</th>`);
+  tr += "</tr>";
+  thead.innerHTML = tr;
+
+  if(owner){
+    addInputs.innerHTML = `
+      買家：<input id="in_buyer_name"><br>
+      買家 Email：<input id="in_buyer_email" list="recentList"><datalist id="recentList"></datalist><br>
+      物品名稱：<input id="in_item_name"><br>
+      數量：<input id="in_item_qty" type="number"><br>
+      單價：<input id="in_item_price" type="number"><br>
+      ${fields.remittance ? '是否匯款：<input type="checkbox" id="in_remittance"><br>' : ''}
+      ${fields.shipped ? '出貨：<input type="checkbox" id="in_shipped"> 出貨日：<input type="date" id="in_shipped_date" style="display:none;"><br>' : ''}
+      ${fields.shipping_fee ? `運費：<input id="in_shipping_fee" type="number"><br>` : ''}
+      ${fields.buyer_social ? '買家社群：<input id="in_buyer_social"><br>' : ''}
+    `;
+
+    setTimeout(()=>{
+      const sh = document.getElementById("in_shipped");
+      if(sh) sh.addEventListener("change", ()=>{
+        const dd = document.getElementById("in_shipped_date");
+        if(sh.checked){
+          dd.style.display = "inline";
+          dd.value = new Date().toISOString().slice(0,10);
+        } else dd.style.display="none";
+      });
+    },100);
+  } else {
+    addInputs.innerHTML = "";
+    document.getElementById("addArea").style.display = "none";
+  }
+}
+
+function renderRows(rows, owner){
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  rows.forEach((r, idx)=>{
+    const tr = document.createElement("tr");
+    const shippedText = r.shipped ? r.shipped : "未出貨";
+    let html = `<td>${r.buyer_name||""}</td>
+                <td>${r.buyer_email||""}</td>
+                <td>${r.item_name||""}</td>
+                <td>${r.item_qty ?? ""}</td>
+                <td>${r.item_price ?? ""}</td>
+                <td>${(r.item_total ?? 0).toFixed(2)}</td>`;
+    if(currentForm.fields.remittance) html += `<td>${r.remittance ? "✓": ""}</td>`;
+    if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
+    if(currentForm.fields.shipping_fee) html += `<td>${r.shipping_fee ?? ""}</td>`;
+    if(currentForm.fields.buyer_social && owner) html += `<td>${r.buyer_social||""}</td>`;
+    html += owner ? `<td><button class="editBtn">編輯</button> <button class="deleteBtn">刪除</button></td>` : `<td>—</td>`;
+    tr.innerHTML = html;
+    tr.dataset.index = idx;
+    tbody.appendChild(tr);
+  });
+
+  if(owner){
+    document.querySelectorAll(".editBtn").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        const tr = e.target.closest("tr");
+        startEdit(tr, Number(tr.dataset.index));
+      });
+    });
+    document.querySelectorAll(".deleteBtn").forEach(btn=>{
+      btn.addEventListener("click", async (e)=>{
+        const tr = e.target.closest("tr");
+        const idx = Number(tr.dataset.index);
+        if(!confirm("確定刪除？")) return;
+        const res = await apiDeleteRow(form_id, user_id, idx);
+        if(res.success) build(); else alert("刪除失敗");
+      });
+    });
+  }
+}
+
+function startEdit(tr, index){
+  const tds = tr.querySelectorAll("td");
+  tds[0].innerHTML = `<input value="${tds[0].innerText}">`;
+  tds[1].innerHTML = `<input value="${tds[1].innerText}">`;
+  tds[2].innerHTML = `<input value="${tds[2].innerText}">`;
+  tds[3].innerHTML = `<input type="number" value="${tds[3].innerText}">`;
+  tds[4].innerHTML = `<input type="number" value="${tds[4].innerText}">`;
+  tds[5].innerText = "";
+
+  let col = 6;
+  if(currentForm.fields.remittance){
+    tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${tds[col].innerText.trim() ? "checked":""}>`;
+    col++;
+  }
+  if(currentForm.fields.shipped){
+    const val = tds[col].innerText === "未出貨" ? "" : tds[col].innerText;
+    tds[col].innerHTML = `<input type="date" id="edit_shipped" value="${val}">`;
+    col++;
+  }
+  if(currentForm.fields.shipping_fee){
+    tds[col].innerHTML = `<input type="number" id="edit_shipfee" value="${tds[col].innerText||0}">`;
+    col++;
+  }
+  if(currentForm.fields.buyer_social){
+    tds[col].innerHTML = `<input id="edit_social" value="${tds[col].innerText||''}">`;
+    col++;
+  }
+
+  tds[tds.length-1].innerHTML = `<button id="saveBtn">完成</button> <button id="cancelBtn">取消</button>`;
+
+  document.getElementById("saveBtn").addEventListener("click", async ()=>{
+    const buyer_name = tds[0].querySelector("input").value;
+    const buyer_email = tds[1].querySelector("input").value;
+    const item_name = tds[2].querySelector("input").value;
+    const item_qty = Number(tds[3].querySelector("input").value || 0);
+    const item_price = Number(tds[4].querySelector("input").value || 0);
+
+    let remittance=false, shipped=null, shipping_fee=0, buyer_social=null;
+    if(currentForm.fields.remittance)
+      remittance = !!document.getElementById("edit_remit").checked;
+    if(currentForm.fields.shipped)
+      shipped = document.getElementById("edit_shipped").value || null;
+    if(currentForm.fields.shipping_fee)
+      shipping_fee = Number(document.getElementById("edit_shipfee").value || 0);
+    if(currentForm.fields.buyer_social)
+      buyer_social = document.getElementById("edit_social").value || null;
+
+    // ✅ 計算 item_total
+    let item_total = item_qty * item_price;
+    if(currentForm.fields.merge_shipping) item_total += shipping_fee;
+
+    const body = {
+      buyer_name, buyer_email, item_name, item_qty, item_price,
+      item_total, remittance, shipped, shipping_fee, buyer_social
+    };
+
+    const res = await apiUpdateRow(form_id, user_id, index, body);
+    if(res.success) build(); else alert("更新失敗");
+  });
+
+  document.getElementById("cancelBtn").addEventListener("click", ()=> build());
+}
+
+function buildBuyerAutocomplete(){
+  const list = document.getElementById("recentList");
+  list.innerHTML = "";
+  (window.recentBuyers || []).forEach(e=>{
+    const opt = document.createElement("option");
+    opt.value = e;
+    list.appendChild(opt);
+  });
+}
+
+document.getElementById("addBtn").addEventListener("click", async ()=>{
+  const buyer_name = document.getElementById("in_buyer_name").value;
+  const buyer_email = document.getElementById("in_buyer_email").value;
+  const item_name = document.getElementById("in_item_name").value;
+  const item_qty = Number(document.getElementById("in_item_qty").value || 0);
+  const item_price = Number(document.getElementById("in_item_price").value || 0);
+  const remittance = document.getElementById("in_remittance") ? !!document.getElementById("in_remittance").checked : false;
+  const shipped = document.getElementById("in_shipped") && document.getElementById("in_shipped").checked
+                   ? (document.getElementById("in_shipped_date").value || new Date().toISOString().slice(0,10))
+                   : null;
+  const shipping_fee = document.getElementById("in_shipping_fee")
+                      ? Number(document.getElementById("in_shipping_fee").value||0)
+                      : 0;
+  const buyer_social = document.getElementById("in_buyer_social")
+                       ? document.getElementById("in_buyer_social").value || null
+                       : null;
+
+  // ✅ 計算 item_total
+  let item_total = item_qty * item_price;
+  if(currentForm.fields.merge_shipping) item_total += shipping_fee;
+
+  const row = { buyer_name, buyer_email, item_name, item_qty, item_price,
+                item_total, remittance, shipped, shipping_fee, buyer_social };
+
+  const res = await apiAddRow(form_id, user_id, row);
+  if(res.success) build(); else alert("新增失敗");
+});
+
+document.getElementById("clearBtn").addEventListener("click", async ()=>{
+  if(!confirm("確定清空所有資料？")) return;
+  const res = await apiClearForm(form_id, user_id);
+  if(res.success) build(); else alert("清空失敗");
+});
+
+build();
+</script>
+</body>
+</html>
