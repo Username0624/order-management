@@ -65,6 +65,9 @@ def create_form_page():
 def form_page():
     return render_template("form.html")
 
+@app.route("/forgot_password", methods=["GET"])
+def forgot_password_page():
+    return render_template("forgot_password.html")
 # ---------------- Auth ----------------
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -164,10 +167,7 @@ def send_reset_email(email, token):
     print("=================================")
 
 #重設密碼組
-@app.route("/forgot_password", methods=["GET"])
-def forgot_password_page(): # 假設這是您在 app.py 中的函式名稱
-    # ------------------ 檢查點 1：這裡是否有使用到未定義的變數？ ------------------
-    return render_template("forgot_password.html")
+
 @app.route("/api/forgot_password", methods=["POST"])
 def forgot_password_api():
     """處理前端提交的 Email，生成 Token 並發送重設郵件。"""
