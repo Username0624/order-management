@@ -65,7 +65,6 @@ def create_form_page():
 def form_page():
     return render_template("form.html")
 
-
 # ---------------- Auth ----------------
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -81,21 +80,29 @@ def register():
 
         if not username or not email or not password:
             return jsonify({"error": "缺少欄位"}), 400
+        
+        # ⚠️ 修正重點：使用 generate_password_hash 雜湊密碼
+        hashed_password = generate_password_hash(password)
+
+        # 檢查 Email 是否已存在（建議新增，防止重複註冊）
+        if users.find_one({"email": email}):
+            return jsonify({"error": "該電子郵件已被註冊"}), 409 # Conflict
 
         result = users.insert_one({
             "username": username,
             "email": email,
-            "password": password
+            # ✅ 存入雜湊後的密碼
+            "password": hashed_password 
         })
 
         print("insert result:", result.inserted_id)
 
-        return jsonify({"success": True})
+        return jsonify({"success": True, "message": "註冊成功"})
 
     except Exception as e:
         print("註冊錯誤:", str(e))
-        return jsonify({"error": "server error"}), 500
-
+        return jsonify({"error": "伺服器錯誤"}), 500
+    
 @app.route("/api/login", methods=["POST"])
 def api_login():
     data = request.get_json()
