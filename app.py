@@ -102,16 +102,60 @@ def register():
     except Exception as e:
         print("註冊錯誤:", str(e))
         return jsonify({"error": "伺服器錯誤"}), 500
-    
 @app.route("/api/login", methods=["POST"])
 def api_login():
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
+    
+    print("\n--- 收到登入請求 ---")
+    print(f"1. 接收到的 Email: {email}")
+    print(f"2. 接收到的 密碼 (明文): {password}")
+    
+    # 步驟 1: 查找用戶
     user = users.find_one({"email": email})
-    if not user or not check_password_hash(user["password"], password):
+    
+    # 步驟 2: 檢查用戶是否存在
+    if not user:
+        print("3. 檢查結果: 用戶不存在 (Email 錯誤或未註冊)")
         return jsonify({"success": False, "message": "帳號或密碼錯誤"}), 401
-    return jsonify({"success": True, "user_id": str(user["_id"]), "username": user.get("username",""), "email": user["email"]})
+    
+    print("3. 檢查結果: 成功找到用戶")
+    
+    # 步驟 3: 提取資料庫中的雜湊密碼
+    hashed_password_in_db = user.get("password")
+    
+    print(f"4. 資料庫中儲存的雜湊值: {hashed_password_in_db}")
+
+    # 步驟 4: 驗證密碼
+    # 使用 try...except 處理 check_password_hash 可能因為格式錯誤而拋出的異常
+    try:
+        password_verified = check_password_hash(hashed_password_in_db, password)
+    except ValueError as e:
+        print(f"5. 密碼比對錯誤: ValueError - 可能是資料庫中的密碼格式錯誤。錯誤訊息: {e}")
+        # 如果格式錯誤（例如儲存的是明文），強制返回 False
+        password_verified = False
+    except Exception as e:
+        print(f"5. 密碼比對發生其他錯誤: {e}")
+        password_verified = False
+
+
+    if not password_verified:
+        print("6. 最終驗證結果: 密碼比對失敗")
+        return jsonify({"success": False, "message": "帳號或密碼錯誤"}), 401
+    
+    # 步驟 5: 登入成功
+    print("6. 最終驗證結果: 登入成功！")
+    print("----------------------\n")
+    
+    return jsonify({
+        "success": True, 
+        "user_id": str(user["_id"]), 
+        "username": user.get("username",""), 
+        "email": user["email"]
+    })
+
+# 忘記密碼的函式保持不變
 def send_reset_email(email, token):
     reset_url = f"http://localhost:5000/reset_password/{token}"
     print("========== 密碼重設連結 ==========")
