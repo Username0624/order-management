@@ -46,7 +46,7 @@
 
                 <hr class="my-4">
 
-                <p class="text-center text-muted mb-0">已經是會員？ <a href="{{ url_for('login_html') }}" class="link-primary text-decoration-none fw-bold">返回登入</a></p>
+                <p class="text-center text-muted mb-0">已經是會員？ <a href="{{ url_for('login_page') }}" class="link-primary text-decoration-none fw-bold">返回登入</a></p>
             </div>
         </div>
     </div>
@@ -61,16 +61,22 @@
             e.preventDefault();
             const msgElement = document.getElementById("msg");
 
+            // 確保這裡的變數 (username, email, password) 已經在整個 HTML 作用域中被正確識別
+            const usernameInput = document.getElementById("username");
+            const emailInput = document.getElementById("email");
+            const passwordInput = document.getElementById("password");
+
             const result = await apiRegister(
-                username.value,
-                email.value,
-                password.value
+                usernameInput.value,
+                emailInput.value,
+                passwordInput.value
             );
 
             msgElement.innerText = result.message || result.error;
 
             if(result.success){
-                setTimeout(() => location.href = "login", 1000);
+                // 註冊成功後，跳轉到 /login 路由 (這會由 Flask 的 @app.route("/login") 處理)
+                setTimeout(() => location.href = "/login", 1000); 
             }
         });
     </script>
