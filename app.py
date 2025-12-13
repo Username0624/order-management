@@ -82,7 +82,7 @@ def register():
         if not username or not email or not password:
             return jsonify({"error": "缺少欄位"}), 400
 
-        result = users_col.insert_one({
+        result = users.insert_one({
             "username": username,
             "email": email,
             "password": password
