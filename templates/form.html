@@ -104,13 +104,14 @@ function logout(){
         localStorage.removeItem("form_role");
         localStorage.removeItem("user_id");
         localStorage.removeItem("username");
+        localStorage.removeItem("email"); // 確保清除 email
         location.href = "/login";
     }
 }
 
 const form_id = localStorage.getItem("form_id");
 const user_id = localStorage.getItem("user_id");
-const user_email = localStorage.getItem("email");
+const user_email = localStorage.getItem("email"); // 讀取當前登入的 email
 let currentForm = null;
 let isOwner = false;
 
@@ -170,7 +171,7 @@ async function build(){
     
     // 4. 渲染核心數據
     renderStructure(currentForm.fields, isOwner);
-    renderRows(currentForm.rows, isOwner);
+    renderRows(currentForm.rows, isOwner); // 包含權限過濾邏輯
     renderSummary(res.summary_by_buyer);
 
     // 5. 賣家專屬功能
@@ -277,7 +278,7 @@ function renderRows(rows, owner){
     const tbody = document.getElementById("tbody");
     tbody.innerHTML = "";
     
-    // 如果不是賣家，只顯示自己的訂單
+    // 🌟 恢復權限邏輯：如果是買家，只顯示與當前登入 email 相符的訂單
     const displayRows = owner ? rows : rows.filter(r => r.buyer_email === user_email);
 
     if (displayRows.length === 0) {
@@ -297,9 +298,12 @@ function renderRows(rows, owner){
             <td>${r.item_price ?? ""}</td>
             <td><span class="fw-bold text-danger">${(r.item_total ?? 0).toFixed(2)}</span></td>`;
         
-        // 🌟 修正「已匯款」：確保正確顯示圖示，即便是 `null` 或 `undefined` 也會視為未匯款
+        // 🌟 修正「已匯款」：改用 Unicode 符號 ✓ 和 ✗ 
         if(currentForm.fields.remittance) {
-            html += `<td>${r.remittance ? '<i class="fas fa-check-circle text-success" title="已匯款"></i>': '<i class="fas fa-times-circle text-danger" title="未匯款"></i>'}</td>`;
+            const symbol = r.remittance ? 
+                '<span class="text-success fs-5 fw-bold" title="已匯款">✓</span>' : 
+                '<span class="text-danger fs-5 fw-bold" title="未匯款">✗</span>';
+            html += `<td>${symbol}</td>`;
         }
         
         if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
@@ -308,6 +312,7 @@ function renderRows(rows, owner){
         
         // 操作按鈕
         if (owner) {
+             // 保留 Font Awesome 圖示用於操作按鈕
              html += `<td>
                 <button class="editBtn btn btn-sm btn-outline-primary me-1"><i class="fas fa-pen"></i></button> 
                 <button class="deleteBtn btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
@@ -356,8 +361,9 @@ function startEdit(tr, index){
 
     let col = 6;
     if(currentForm.fields.remittance){
-        // 🌟 修正「已匯款」編輯：直接檢查是否有成功圖示
-        const isChecked = tds[col].querySelector('i.fa-check-circle');
+        // 🌟 修正「已匯款」編輯：檢查當前 TD 內容是否為 '✓' (表示已匯款)
+        // 確保不受舊的 Font Awesome 影響
+        const isChecked = tds[col].innerText.includes('✓');
         tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${isChecked ? "checked":""}>`;
         col++;
     }
