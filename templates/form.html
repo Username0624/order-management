@@ -297,7 +297,11 @@ function renderRows(rows, owner){
             <td>${r.item_price ?? ""}</td>
             <td><span class="fw-bold text-danger">${(r.item_total ?? 0).toFixed(2)}</span></td>`;
         
-        if(currentForm.fields.remittance) html += `<td>${r.remittance ? '<i class="fas fa-check-circle text-success"></i>': '<i class="fas fa-times-circle text-danger"></i>'}</td>`;
+        // 🌟 修正「已匯款」：確保正確顯示圖示，即便是 `null` 或 `undefined` 也會視為未匯款
+        if(currentForm.fields.remittance) {
+            html += `<td>${r.remittance ? '<i class="fas fa-check-circle text-success" title="已匯款"></i>': '<i class="fas fa-times-circle text-danger" title="未匯款"></i>'}</td>`;
+        }
+        
         if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
         if(currentForm.fields.shipping_fee) html += `<td>${r.shipping_fee ?? ""}</td>`;
         if(currentForm.fields.buyer_social && owner) html += `<td>${r.buyer_social||""}</td>`;
@@ -352,6 +356,7 @@ function startEdit(tr, index){
 
     let col = 6;
     if(currentForm.fields.remittance){
+        // 🌟 修正「已匯款」編輯：直接檢查是否有成功圖示
         const isChecked = tds[col].querySelector('i.fa-check-circle');
         tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${isChecked ? "checked":""}>`;
         col++;
