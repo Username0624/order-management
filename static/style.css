@@ -1,8 +1,8 @@
-/* 1. 全域樣式和背景 */
+/* 1. 全域樣式和背景 - 保持不變 */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f6; /* 柔和的背景色 */
-    display: flex; /* 使用 Flexbox 居中容器 */
+    background-color: #f8f8f8; /* 稍亮的背景，類似參考圖 */
+    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -12,115 +12,169 @@ body {
 /* 2. 註冊容器 (卡片樣式) */
 .register-container {
     background-color: #ffffff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 柔和的陰影 */
+    padding: 50px 60px; /* 增加內邊距以模仿圖中留白 */
+    border-radius: 6px; /* 稍微銳利一點的圓角 */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* 柔和的陰影 */
     width: 100%;
-    max-width: 400px; /* 限制最大寬度，適合手機和桌面 */
+    max-width: 900px; /* 寬度增加以容納兩欄 */
     text-align: center;
 }
 
-/* 標題 */
-.register-container h2 {
-    color: #333;
-    margin-bottom: 30px;
+.main-title {
+    color: #4a4a4a; /* 稍微偏灰的標題色 */
+    font-weight: 300; /* 較細的字重 */
+    font-size: 3rem;
+    margin-bottom: 5px;
+}
+
+.sub-title {
+    color: #888;
+    margin-bottom: 40px;
+    font-size: 1rem;
+}
+
+.link-text {
+    color: #007bff; /* 連結顏色 */
+    text-decoration: none;
     font-weight: 600;
 }
 
-/* 3. 表單元素樣式 */
+.link-text:hover {
+    text-decoration: underline;
+}
+
+/* 3. 兩欄佈局 Grid 樣式 */
+.form-grid {
+    display: flex;
+    gap: 40px; /* 欄位間距 */
+    align-items: flex-start; /* 頂部對齊 */
+    text-align: left;
+}
+
+.grid-column {
+    flex: 1; /* 兩欄平均分配空間 */
+}
+
+/* 左側表單欄位 */
 .input-group {
     margin-bottom: 20px;
-    text-align: left; /* 讓 label 和 input 靠左對齊 */
 }
 
 .input-group label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #555;
+    margin-bottom: 5px;
+    font-weight: 400;
+    color: #4a4a4a;
     font-size: 0.95rem;
 }
 
 .input-group input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box; /* 確保 padding 不會增加寬度 */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
     font-size: 1rem;
-    transition: border-color 0.3s;
 }
 
 .input-group input:focus {
-    border-color: #007bff; /* 聚焦時的邊框顏色 */
+    border-color: #007bff;
     outline: none;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 0 1px #007bff;
+}
+
+.input-error {
+    color: #dc3545; /* 紅色錯誤提示 */
+    font-size: 0.8rem;
+    margin-top: 5px;
+    height: 15px; /* 保持空間穩定 */
+}
+
+.forgot-link {
+    display: block;
+    font-size: 0.85rem;
+    color: #007bff;
+    text-align: left;
+    margin-top: 5px;
+    text-decoration: none;
 }
 
 /* 4. 按鈕樣式 */
 .submit-btn {
     width: 100%;
     padding: 12px;
-    background-color: #007bff; /* 主題藍色 */
-    color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 1.1rem;
+    border-radius: 4px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-    margin-top: 10px;
+    transition: background-color 0.3s;
+    margin-top: 20px;
 }
 
-.submit-btn:hover {
+.primary-blue {
+    background-color: #007bff; /* 主要行動按鈕 */
+    color: white;
+}
+
+.primary-blue:hover {
     background-color: #0056b3;
 }
 
-.submit-btn:active {
-    transform: scale(0.99);
+/* 5. 社交登入按鈕 */
+.social-column {
+    padding-top: 50px; /* 讓社交按鈕和標準表單高度對齊 */
+    border-left: 1px solid #eee; /* 模仿圖中的分隔線 */
+    padding-left: 40px; 
 }
 
-/* 5. 訊息區和連結 */
-.message-area {
-    margin-top: 20px;
-    padding: 10px;
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: none;
     border-radius: 4px;
-    font-weight: 500;
-    min-height: 40px; /* 保持訊息區高度穩定 */
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    color: white;
 }
 
-.message-area.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+.social-btn:hover {
+    opacity: 0.9;
 }
 
-.message-area.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+.google-red {
+    background-color: #db4437; /* Google 品牌紅色 */
 }
 
-.login-link {
-    margin-top: 20px;
-    font-size: 0.9rem;
-    color: #6c757d;
+.google-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: white; /* 讓圖標背景是白色 */
+    border-radius: 50%;
+    padding: 2px;
 }
 
-.login-link a {
-    color: #007bff;
-    text-decoration: none; /* 移除下劃線 */
-    font-weight: 500;
-}
-
-.login-link a:hover {
-    text-decoration: underline; /* 懸停時顯示下劃線 */
-}
-
-/* 響應式調整 */
-@media (max-width: 500px) {
+/* 6. 響應式調整 */
+@media (max-width: 850px) {
     .register-container {
-        margin: 20px;
-        padding: 30px 20px;
+        padding: 30px;
+        max-width: 500px;
+    }
+    .form-grid {
+        flex-direction: column; /* 小螢幕下變為單欄 */
+        gap: 0;
+    }
+    .social-column {
+        border-left: none;
+        border-top: 1px solid #eee;
+        padding: 30px 0 0 0;
+        margin-top: 20px;
     }
 }
