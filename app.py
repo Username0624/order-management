@@ -165,7 +165,7 @@ def send_reset_email(email, token):
 
 #重設密碼組
 @app.route("/forgot_password", methods=["GET"])
-def forgot_password_page():
+def forgot_password_page(): # ⬅️ 這是 login.html 連結的目標！
     """顯示忘記密碼的表單頁面。"""
     return render_template("forgot_password.html")
 @app.route("/api/forgot_password", methods=["POST"])
