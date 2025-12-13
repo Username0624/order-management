@@ -1,11 +1,13 @@
 const API_BASE = "http://127.0.0.1:5000";
 
 // Auth
-async function apiRegister(username, email, password){
-  const res = await fetch(`${API_BASE}/api/register`, {
+async function apiRegister(username, email, password) {
+  const res = await fetch("/api/register", {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({username, email, password})
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ username, email, password })
   });
   return res.json();
 }
