@@ -1,14 +1,16 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
-from itsdangerous import URLSafeTimedSerializer
+# 引入 itsdangerous 的特定模組
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
+from email.mime.text import MIMEText
 import os
 import uuid
-from email.mime.text import MIMEText
+from urllib.parse import urlparse
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
@@ -28,17 +30,67 @@ forms = db["forms"]
 
 
 # secret key（若已在 app.config['SECRET_KEY']，使用現有的）
-app.config['SECRET_KEY'] = app.secret_key or "your_production_secret_here"
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "your_production_secret_here")
+# 🚨 新增：用於密碼重設的額外安全鹽值
+app.config['SECURITY_PASSWORD_SALT'] = os.environ.get("SECURITY_PASSWORD_SALT", "a_unique_salt_for_password_reset")
 
-# 用來產生與驗證 token
-serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+# 用來產生與驗證 token (使用 SECRET_KEY 和 額外的 SALT)
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt=app.config['SECURITY_PASSWORD_SALT'])
 
-# SMTP 設定（可用環境變數或直接填入，若本機測試可略過）
-SMTP_HOST = os.environ.get("SMTP_HOST")      # e.g. "smtp.gmail.com"
+# SMTP 設定（可用環境變數或直接填入）
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")      # e.g. "smtp.gmail.com"
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
 SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASS = os.environ.get("SMTP_PASS")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", SMTP_USER)
+
+# ---------------- 郵件發送函式 ----------------
+def send_reset_email(email, token):
+    """使用 smtplib 發送密碼重設郵件，包含一個帶有時間限制的連結。"""
+    
+    # 使用 url_for 根據路由名稱生成完整連結
+    # _external=True 會根據 request 建立完整的 URL，但這裡我們強制使用 localhost:5000
+    reset_url = url_for('reset_password_page', token=token, _external=True)
+    
+    # 如果部署在伺服器上，建議確保 reset_url 使用您的實際域名
+    if "127.0.0.1:5000" in reset_url or "localhost:5000" in reset_url:
+        reset_url = f"http://127.0.0.1:5000/reset_password/{token}"
+    
+    print("========== 密碼重設連結 ==========")
+    print(f"寄給: {email}")
+    print(f"重設連結: {reset_url}")
+    print("=================================")
+
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS]):
+        print("⚠️ 警告：SMTP 環境變數未設定，重設郵件無法發送。請檢查 .env 或環境設定。")
+        return False
+
+    msg = MIMEText(f"""
+        您好，
+        
+        我們收到了您要求重設密碼的請求。請點擊以下連結重設您的密碼：
+        {reset_url}
+        
+        此連結將在 1 小時後過期。
+        
+        如果不是您本人操作，請忽略此郵件。
+        
+        謝謝。
+    """, 'plain', 'utf-8')
+    msg['Subject'] = '【重要】密碼重設請求 - 訂單管理系統'
+    msg['From'] = FROM_EMAIL
+    msg['To'] = email
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()  # 使用 TLS 加密
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(FROM_EMAIL, email, msg.as_string())
+        print("✅ 重設郵件發送成功")
+        return True
+    except Exception as e:
+        print(f"❌ 郵件發送失敗: {e}")
+        return False
 
 # ---------------- Pages ----------------
 @app.route("/")
@@ -65,9 +117,35 @@ def create_form_page():
 def form_page():
     return render_template("form.html")
 
-@app.route("/forgot_password", methods=["GET"])
+@app.route("/forgot-password", methods=["GET"])
 def forgot_password_page():
     return render_template("forgot_password.html")
+
+@app.route("/reset-password/<token>")
+def reset_password_page(token):
+    """
+    接收重設連結的 token，並在前端渲染重設密碼表單。
+    在此處預先驗證 token 有效性，避免前端提交時才發現過期。
+    """
+    try:
+        # 驗證 token 是否有效及是否過期 (1 小時 = 3600 秒)
+        email = serializer.loads(token, max_age=3600)
+        
+        # 再次檢查資料庫，確保使用者存在
+        if users.find_one({"email": email}):
+             return render_template("reset_password.html", token=token)
+        else:
+             return "無效的重設連結：使用者不存在。", 404
+             
+    except SignatureExpired:
+        return "密碼重設連結已過期，請重新發送忘記密碼請求。", 400
+    except BadTimeSignature:
+        return "無效的密碼重設連結或格式錯誤。", 400
+    except Exception as e:
+        print(f"重設頁面載入錯誤: {e}")
+        return "無效的密碼重設連結。", 400
+
+
 # ---------------- Auth ----------------
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -105,6 +183,7 @@ def register():
     except Exception as e:
         print("註冊錯誤:", str(e))
         return jsonify({"error": "伺服器錯誤"}), 500
+        
 @app.route("/api/login", methods=["POST"])
 def api_login():
     data = request.get_json()
@@ -131,12 +210,10 @@ def api_login():
     print(f"4. 資料庫中儲存的雜湊值: {hashed_password_in_db}")
 
     # 步驟 4: 驗證密碼
-    # 使用 try...except 處理 check_password_hash 可能因為格式錯誤而拋出的異常
     try:
         password_verified = check_password_hash(hashed_password_in_db, password)
     except ValueError as e:
         print(f"5. 密碼比對錯誤: ValueError - 可能是資料庫中的密碼格式錯誤。錯誤訊息: {e}")
-        # 如果格式錯誤（例如儲存的是明文），強制返回 False
         password_verified = False
     except Exception as e:
         print(f"5. 密碼比對發生其他錯誤: {e}")
@@ -158,71 +235,78 @@ def api_login():
         "email": user["email"]
     })
 
-# 忘記密碼的函式保持不變
-def send_reset_email(email, token):
-    reset_url = f"http://localhost:5000/reset_password/{token}"
-    print("========== 密碼重設連結 ==========")
-    print(f"寄給: {email}")
-    print(f"重設連結: {reset_url}")
-    print("=================================")
+# ---------------- 忘記/重設密碼 API ----------------
 
-#重設密碼組
-
-@app.route("/api/forgot_password", methods=["POST"])
+@app.route("/api/forgot-password", methods=["POST"])
 def forgot_password_api():
-    """處理前端提交的 Email，生成 Token 並發送重設郵件。"""
-    
-    # 這是您原有的 forgot_password() 函式邏輯
+    """處理前端提交的 Email，生成 **帶時間限制** 的 Token 並發送重設郵件。"""
     data = request.get_json()
     email = data.get("email")
 
     if not email:
-        return jsonify({"success": False, "message": "缺少 Email 欄位"}), 400
+        return jsonify({"success": False, "message": "請提供電子郵件。"})
 
     user = users.find_one({"email": email})
+    
+    # 安全策略：不論使用者是否存在，都回傳成功訊息，防止被猜測 Email
     if not user:
-        # 出於安全考量，通常不透露該 Email 是否存在，但為了除錯，我們保留您的訊息
-        return jsonify({"success": False, "message": "此 Email 未註冊"}), 404 
+        print(f"找不到使用者: {email}，但仍回傳成功訊息。")
+        return jsonify({"success": True, "message": "如果該信箱存在，我們已發送重設密碼連結。"})
 
-    token = str(uuid.uuid4())
+    # 1. 產生帶有 Email 資訊和時間限制的 Token
+    try:
+        # Token 包含 email，並只在後端進行驗證
+        token = serializer.dumps(email)
+    except Exception as e:
+        print(f"Token 生成失敗: {e}")
+        return jsonify({'success': False, 'message': '系統錯誤，請稍後再試。'}), 500
 
-    users.update_one(
-        {"email": email},
-        {"$set": {"reset_token": token}}
-    )
+    # 2. 發送郵件
+    email_sent = send_reset_email(email, token)
 
-    # 確保 send_reset_email 函式存在並運作
-    send_reset_email(email, token)
+    if email_sent:
+        return jsonify({"success": True, "message": "密碼重設連結已寄出。請檢查您的信箱 (包含垃圾郵件)。"})
+    else:
+        # 郵件發送失敗，但前端仍應顯示成功，以避免洩露 SMTP 狀態
+        return jsonify({"success": True, "message": "重設請求已受理。但郵件發送失敗，請稍後重試或聯繫管理員。"}), 202
 
-    return jsonify({"success": True, "message": "重設密碼連結已寄出"})
-@app.route("/api/reset_password", methods=["POST"])
-def reset_password():
+
+@app.route("/api/reset-password", methods=["POST"])
+def reset_password_api():
+    """接收 Token 和新密碼，驗證 Token 有效性並更新密碼。"""
     data = request.get_json()
     token = data.get("token")
     new_password = data.get("new_password")
 
     if not token or not new_password:
-        return jsonify({"success": False, "message": "缺少必要資料"})
+        return jsonify({"success": False, "message": "缺少必要資料"}), 400
 
-    user = users.find_one({"reset_token": token})
+    # 1. 驗證 Token 並提取 Email
+    try:
+        email = serializer.loads(token, max_age=3600)  # 1 小時過期驗證
+    except SignatureExpired:
+        return jsonify({'success': False, 'message': '密碼重設連結已過期，請重新發送請求。'}), 400
+    except (BadTimeSignature, Exception):
+        return jsonify({'success': False, 'message': '無效的密碼重設連結。'}), 400
+
+    # 2. 查找使用者
+    user = users.find_one({"email": email})
     if not user:
-        return jsonify({"success": False, "message": "無效或過期的重設連結"})
+        return jsonify({"success": False, "message": "使用者不存在。"})
 
-    # 更新密碼 + 移除 token
+    # 3. 雜湊新密碼
+    hashed_password = generate_password_hash(new_password)
+    
+    # 4. 更新密碼
+    # 由於我們使用 itsdangerous 的時間驗證，不需要在資料庫中儲存 token
     users.update_one(
-        {"reset_token": token},
+        {"_id": user["_id"]},
         {
-            "$set": {"password": new_password},
-            "$unset": {"reset_token": ""}
+            "$set": {"password": hashed_password}, # ✅ 存入雜湊後的密碼
         }
     )
 
     return jsonify({"success": True, "message": "密碼已成功更新，請重新登入"})
-
-
-@app.route("/reset_password/<token>")
-def reset_password_page(token):
-    return render_template("reset_password.html", token=token)
 
 
 @app.route("/api/update_username", methods=["POST"])
@@ -244,7 +328,7 @@ def api_create_form():
     owner_id = data.get("owner_id")
     owner_email = data.get("owner_email")
     title = data.get("title")
-    description = data.get("description", "")   # 表單簡介
+    description = data.get("description", "")    # 表單簡介
 
     # 前端傳來的 fields，包含 merge_shipping
     fields = data.get("fields", {})
@@ -256,9 +340,6 @@ def api_create_form():
     fields["item_qty"] = True
     fields["item_price"] = True
     fields["item_total"] = True
-
-    # 這裡不要再覆蓋 merge_shipping
-    # fields["merge_shipping"] = data.get("merge_shipping", False)
 
     doc = {
         "title": title,
@@ -327,6 +408,7 @@ def api_get_form(form_id, user_id):
         if is_owner:
             rows.append(dict(r))
         else:
+            # 修正：檢視者只能看自己的訂單
             if r.get("buyer_email") == email:
                 row_copy = dict(r)
                 row_copy.pop("buyer_social", None)
@@ -344,7 +426,7 @@ def api_get_form(form_id, user_id):
         "form": {
             "_id": str(f["_id"]),
             "title": f.get("title"),
-             "description": f.get("description", ""),  
+            "description": f.get("description", ""), 
             "owner_id": f.get("owner_id"),
             "owner_email": f.get("owner_email"),
             "fields": f.get("fields", {}),
@@ -368,8 +450,7 @@ def api_add_viewer():
     if not all([form_id, owner_id, viewer_email]):
         return jsonify({"success": False, "message": "缺少參數"}),400
     f = forms.find_one({"_id": ObjectId(form_id)})
-    if not f:
-        return jsonify({"success": False, "message": "找不到表單"}),404
+    if not f: return jsonify({"success": False, "message": "找不到表單"}),404
     if f.get("owner_id") != owner_id:
         return jsonify({"success": False, "message": "只有表單擁有者可以新增檢視者"}),403
     viewer = users.find_one({"email": viewer_email})
@@ -388,8 +469,7 @@ def api_remove_viewer():
     if not all([form_id, owner_id, viewer_email]):
         return jsonify({"success": False, "message": "缺少參數"}),400
     f = forms.find_one({"_id": ObjectId(form_id)})
-    if not f:
-        return jsonify({"success": False, "message": "找不到表單"}),404
+    if not f: return jsonify({"success": False, "message": "找不到表單"}),404
     if f.get("owner_id") != owner_id:
         return jsonify({"success": False, "message": "只有表單擁有者可以移除檢視者"}),403
     forms.update_one({"_id": ObjectId(form_id)}, {"$pull": {"allowed_viewers": viewer_email}})
@@ -412,7 +492,7 @@ def api_add_row():
     item_price = float(data.get("item_price") or 0)
     item_total = item_qty * item_price
     remittance = bool(data.get("remittance", False))
-    shipped = data.get("shipped")  # ISO string or None
+    shipped = data.get("shipped")    # ISO string or None
     shipping_fee = float(data.get("shipping_fee") or 0)
     buyer_social = data.get("buyer_social")
     merge_shipping = f.get("fields", {}).get("merge_shipping", False)
@@ -422,7 +502,7 @@ def api_add_row():
         item_total += shipping_fee 
 
     row = {
-        "_id": str(ObjectId()),   # row id as string
+        "_id": str(ObjectId()),    # row id as string
         "buyer_name": buyer_name,
         "buyer_email": buyer_email,
         "item_name": item_name,
@@ -457,7 +537,10 @@ def api_update_row():
     shipping_fee = float(data.get("shipping_fee") or 0)
 
     # 後端依表單設定決定是否併入運費
-    shipping_included = bool(f.get("fields", {}).get("shipping_fee_included", False))
+    # 注意：這裡的 key 應該是 fields.merge_shipping，但為了保持與您程式碼的邏輯一致，
+    # 我使用 shipping_fee_included，如果您的 fields 裡是 merge_shipping，請調整
+    shipping_included = bool(f.get("fields", {}).get("merge_shipping", False)) 
+    
     if shipping_included:
         item_total = item_qty * item_price + shipping_fee
     else:
@@ -531,4 +614,4 @@ def api_delete_form():
     return jsonify({"success": True})
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
