@@ -5,3 +5,5 @@ Werkzeug==2.2.3
 Flask-Cors
 itsdangerous
 gunicorn
+
+certifi>=2023.7.22
