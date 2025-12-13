@@ -2,35 +2,46 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>註冊</title>
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>註冊帳號</title>
+    <link rel="stylesheet" href="style.css"> </head>
 <body>
-<h2>註冊帳號</h2>
 
-<form id="registerForm">
-    <label>使用者名稱：</label><br>
-    <input type="text" id="username" required><br><br>
+<div class="register-container">
+    <h2>🔑 註冊新帳號</h2>
 
-    <label>Email：</label><br>
-    <input type="email" id="email" required><br><br>
+    <form id="registerForm" class="register-form">
+        <div class="input-group">
+            <label for="username">使用者名稱</label>
+            <input type="text" id="username" placeholder="請輸入使用者名稱" required>
+        </div>
 
-    <label>密碼：</label><br>
-    <input type="password" id="password" required><br><br>
+        <div class="input-group">
+            <label for="email">電子郵件 (Email)</label>
+            <input type="email" id="email" placeholder="user@example.com" required>
+        </div>
 
-    <button type="submit">註冊</button>
-</form>
+        <div class="input-group">
+            <label for="password">密碼</label>
+            <input type="password" id="password" placeholder="至少8個字元" required>
+        </div>
+        
+        <button type="submit" class="submit-btn">註冊</button>
+    </form>
+    
+    <p id="msg" class="message-area"></p>
 
-<!-- 返回登入按鈕 -->
-<p>已經有帳號？ <button id="toLogin">返回登入</button></p>
-
-<p id="msg"></p>
+    <p class="login-link">
+        已經有帳號？ <a href="#" id="toLogin">返回登入</a>
+    </p>
+</div>
 
 <script src="/static/api.js"></script>
-
 <script>
     // 註冊事件
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
         e.preventDefault();
+        const msgElement = document.getElementById("msg");
+        msgElement.className = 'message-area'; // 重置類別
 
         const result = await apiRegister(
             username.value,
@@ -38,23 +49,25 @@
             password.value
         );
 
-        msg.innerText = result.message || result.error;
-
-        if(result.success){
+        msgElement.innerText = result.message || result.error;
+        
+        if (result.success) {
+            msgElement.classList.add('success');
             // 註冊成功，1秒後跳回登入頁
             setTimeout(() => location.href = "login", 1000);
+        } else {
+            msgElement.classList.add('error');
         }
     });
 
     // 返回登入按鈕事件
-    document.getElementById("toLogin").addEventListener("click", () => {
+    document.getElementById("toLogin").addEventListener("click", (e) => {
+        e.preventDefault(); // 防止 a 標籤跳轉，由 JS 控制
         location.href = "login";
     });
-</script>
-<script>
-  console.log("register page loaded");
+    
+    console.log("register page loaded");
 </script>
 
 </body>
 </html>
-

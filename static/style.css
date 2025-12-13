@@ -1,114 +1,126 @@
-/* 通用設定 */
+/* 1. 全域樣式和背景 */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6; /* 柔和的背景色 */
+    display: flex; /* 使用 Flexbox 居中容器 */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     margin: 0;
-    padding: 20px;
 }
 
-/* 中央卡片布局 */
-form, .container {
-    background: #ffffff;
-    padding: 20px;
-    margin: 0 auto;
-    max-width: 400px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+/* 2. 註冊容器 (卡片樣式) */
+.register-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 柔和的陰影 */
+    width: 100%;
+    max-width: 400px; /* 限制最大寬度，適合手機和桌面 */
+    text-align: center;
 }
 
 /* 標題 */
-h2, h3 {
-    text-align: center;
+.register-container h2 {
     color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
 }
 
-/* 輸入框 */
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"]{
+/* 3. 表單元素樣式 */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left; /* 讓 label 和 input 靠左對齊 */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.input-group input {
     width: 100%;
-    padding: 10px;
-    margin: 6px 0 15px 0;
+    padding: 12px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    box-sizing: border-box; /* 確保 padding 不會增加寬度 */
+    font-size: 1rem;
+    transition: border-color 0.3s;
 }
 
-/* 按鈕 */
-button {
+.input-group input:focus {
+    border-color: #007bff; /* 聚焦時的邊框顏色 */
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+}
+
+/* 4. 按鈕樣式 */
+.submit-btn {
     width: 100%;
-    padding: 10px;
-    background: #3b82f6;
-    color: #fff;
+    padding: 12px;
+    background-color: #007bff; /* 主題藍色 */
+    color: white;
     border: none;
     border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background: #2563eb;
-}
-
-/* 錯誤訊息/一般訊息 */
-#msg {
-    margin-top: 15px;
-    text-align: center;
-    font-weight: bold;
-    color: #d9534f;
-}
-
-/* 表單列表 */
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-ul li {
-    background: white;
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-}
-
-/* in li 的按鈕改成小型 */
-ul li button {
-    width: auto;
-    margin-left: 10px;
-}
-
-/* 資料表格 */
-table {
-    width: 100%;
-    background: white;
-    border-collapse: collapse;
-    margin-top: 20px;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-}
-
-th {
-    background: #e5e7eb;
-}
-
-tr:nth-child(even) {
-    background: #f9fafb;
-}
-
-/* 表單中的新增列區塊 */
-#addRowArea {
-    max-width: 400px;
-    margin: 20px auto;
-}
-
-/* 兩個小按鈕 */
-#addBtn,
-#clearBtn {
+    transition: background-color 0.3s, transform 0.1s;
     margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
+
+.submit-btn:active {
+    transform: scale(0.99);
+}
+
+/* 5. 訊息區和連結 */
+.message-area {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    min-height: 40px; /* 保持訊息區高度穩定 */
+}
+
+.message-area.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-area.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.login-link {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.login-link a {
+    color: #007bff;
+    text-decoration: none; /* 移除下劃線 */
+    font-weight: 500;
+}
+
+.login-link a:hover {
+    text-decoration: underline; /* 懸停時顯示下劃線 */
+}
+
+/* 響應式調整 */
+@media (max-width: 500px) {
+    .register-container {
+        margin: 20px;
+        padding: 30px 20px;
+    }
 }
