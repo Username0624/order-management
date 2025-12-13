@@ -1,180 +1,63 @@
-/* 1. 全域樣式和背景 - 保持不變 */
+/* 定義主題顏色變數 */
+:root {
+    --primary-accent: #9393FF; /* 您的主題色 */
+    --primary-dark: #6A6AD6;  /* 主題色的深色版本，用於懸停 */
+    --gray-bg: #f5f5f5;       /* 淺灰色背景 */
+    --gray-shadow: rgba(0, 0, 0, 0.05); /* 柔和的陰影 */
+}
+
+/* 覆蓋整個頁面背景為淺灰 */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f8f8; /* 稍亮的背景，類似參考圖 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+    background-color: var(--gray-bg) !important;
+    color: #444; /* 深灰色文字，專業感更強 */
 }
 
-/* 2. 註冊容器 (卡片樣式) */
-.register-container {
-    background-color: #ffffff;
-    padding: 50px 60px; /* 增加內邊距以模仿圖中留白 */
-    border-radius: 6px; /* 稍微銳利一點的圓角 */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* 柔和的陰影 */
-    width: 100%;
-    max-width: 900px; /* 寬度增加以容納兩欄 */
-    text-align: center;
+/* 覆蓋 Bootstrap 主要按鈕 (btn-primary) */
+.btn-primary {
+    background-color: var(--primary-accent);
+    border-color: var(--primary-accent);
+    /* 確保文字是白色 */
+    color: white; 
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
-.main-title {
-    color: #4a4a4a; /* 稍微偏灰的標題色 */
-    font-weight: 300; /* 較細的字重 */
-    font-size: 3rem;
-    margin-bottom: 5px;
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
 }
 
-.sub-title {
-    color: #888;
-    margin-bottom: 40px;
-    font-size: 1rem;
+.btn-primary:focus, .btn-primary:active {
+    box-shadow: 0 0 0 0.25rem rgba(147, 147, 255, 0.5) !important; /* 聚焦陰影使用主題色 */
 }
 
-.link-text {
-    color: #007bff; /* 連結顏色 */
-    text-decoration: none;
-    font-weight: 600;
+/* 覆蓋連結顏色 (link-primary) */
+.link-primary, .text-primary {
+    color: var(--primary-accent) !important;
 }
 
-.link-text:hover {
-    text-decoration: underline;
+.link-primary:hover {
+    color: var(--primary-dark) !important;
 }
 
-/* 3. 兩欄佈局 Grid 樣式 */
-.form-grid {
-    display: flex;
-    gap: 40px; /* 欄位間距 */
-    align-items: flex-start; /* 頂部對齊 */
-    text-align: left;
+/* 覆蓋表單輸入框的焦點顏色 */
+.form-control:focus {
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 0.25rem rgba(147, 147, 255, 0.25); /* 柔和的主題色陰影 */
 }
 
-.grid-column {
-    flex: 1; /* 兩欄平均分配空間 */
+/* 調整卡片陰影，使其更符合灰階視覺 */
+.card {
+    box-shadow: 0 0.5rem 1rem var(--gray-shadow) !important;
 }
 
-/* 左側表單欄位 */
-.input-group {
-    margin-bottom: 20px;
+/* 針對 Google 按鈕做調整（避免與主題色衝突，但仍保持識別度） */
+/* 您可以保留原樣，或者像下面這樣讓它更柔和 */
+.btn-danger {
+    background-color: #f44336; /* 標準紅 */
+    border-color: #f44336;
 }
 
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 400;
-    color: #4a4a4a;
-    font-size: 0.95rem;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 1rem;
-}
-
-.input-group input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 1px #007bff;
-}
-
-.input-error {
-    color: #dc3545; /* 紅色錯誤提示 */
-    font-size: 0.8rem;
-    margin-top: 5px;
-    height: 15px; /* 保持空間穩定 */
-}
-
-.forgot-link {
-    display: block;
-    font-size: 0.85rem;
-    color: #007bff;
-    text-align: left;
-    margin-top: 5px;
-    text-decoration: none;
-}
-
-/* 4. 按鈕樣式 */
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-}
-
-.primary-blue {
-    background-color: #007bff; /* 主要行動按鈕 */
-    color: white;
-}
-
-.primary-blue:hover {
-    background-color: #0056b3;
-}
-
-/* 5. 社交登入按鈕 */
-.social-column {
-    padding-top: 50px; /* 讓社交按鈕和標準表單高度對齊 */
-    border-left: 1px solid #eee; /* 模仿圖中的分隔線 */
-    padding-left: 40px; 
-}
-
-.social-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.3s;
-    color: white;
-}
-
-.social-btn:hover {
-    opacity: 0.9;
-}
-
-.google-red {
-    background-color: #db4437; /* Google 品牌紅色 */
-}
-
-.google-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    background-color: white; /* 讓圖標背景是白色 */
-    border-radius: 50%;
-    padding: 2px;
-}
-
-/* 6. 響應式調整 */
-@media (max-width: 850px) {
-    .register-container {
-        padding: 30px;
-        max-width: 500px;
-    }
-    .form-grid {
-        flex-direction: column; /* 小螢幕下變為單欄 */
-        gap: 0;
-    }
-    .social-column {
-        border-left: none;
-        border-top: 1px solid #eee;
-        padding: 30px 0 0 0;
-        margin-top: 20px;
-    }
+.btn-danger:hover {
+    background-color: #d32f2f;
+    border-color: #d32f2f;
 }
