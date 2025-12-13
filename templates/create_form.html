@@ -15,7 +15,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container-fluid container-xl">
-            <a class="navbar-brand fw-bold" href="{{ url_for('dashboard_page') }}">🛒 訂單管理系統</a>
+            <a class="navbar-brand fw-bold" href="{{ url_for('dashboard_page') }}"> 訂單管理系統</a>
             <span class="navbar-text text-white">建立新表單</span>
         </div>
     </nav>
@@ -24,7 +24,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 
-                <h2 class="mb-4 text-center">📋 建立新表單</h2>
+                <h2 class="mb-4 text-center"> 建立新表單</h2>
 
                 <form id="createForm">
                     
@@ -41,7 +41,7 @@
 
                             <div class="mb-3">
                                 <label for="description" class="form-label fw-bold">表單簡介 (可選)</label>
-                                <textarea id="description" class="form-control" rows="3" placeholder="簡短描述表單的用途或注意事項。"></textarea>
+                                <textarea id="description" class="form-control" rows="3" placeholder="簡短描述表單的用途或注意事項 ex匯款帳號or聯繫方式。"></textarea>
                             </div>
 
                         </div>
@@ -60,7 +60,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="f_remittance">
                                         <label class="form-check-label" for="f_remittance">
-                                            是否啟用 **匯款狀態** 追蹤
+                                            匯款狀態
                                             <span class="text-muted small">(checkbox)</span>
                                         </label>
                                     </div>
@@ -70,7 +70,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="f_shipped">
                                         <label class="form-check-label" for="f_shipped">
-                                            是否啟用 **出貨狀態** 追蹤
+                                            出貨狀態
                                             <span class="text-muted small">(出貨時會記錄日期)</span>
                                         </label>
                                     </div>
@@ -80,7 +80,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="f_shipping_fee">
                                         <label class="form-check-label" for="f_shipping_fee">
-                                            是否啟用 **運費** 欄位
+                                            運費
                                         </label>
                                     </div>
                                 </div>
@@ -89,7 +89,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="f_merge_shipping">
                                         <label class="form-check-label" for="f_merge_shipping">
-                                            運費 **併入匯款總額** 計算
+                                            運費是否併入匯款總額計算
                                         </label>
                                     </div>
                                 </div>
@@ -98,7 +98,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="f_buyer_social">
                                         <label class="form-check-label" for="f_buyer_social">
-                                            是否啟用 **買家社群** 欄位
+                                            買家社群帳號連結
                                             <span class="text-danger small">(僅賣家可見)</span>
                                         </label>
                                     </div>

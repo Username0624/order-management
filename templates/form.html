@@ -1,325 +1,473 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>表單內容</title></head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單內容 | 訂單管理系統</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJ8uR2gII9oMvW14jWc//Y4/l86iM/8U8/51L6I6w1YtJ5P5w5/2F/1L6W1P5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> 
+</head>
+<body class="bg-light">
 
-<div style="position: fixed; top: 10px; right: 10px;">
-  <button onclick="logout()">登出</button>
-</div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid container-xl">
+            <h2 class="navbar-brand mb-0 text-truncate" id="formTitle">表單</h2>
+            
+            <div class="d-flex align-items-center">
+                <button onclick="location.href='{{ url_for('dashboard_page') }}'" class="btn btn-outline-light me-2">
+                    <i class="fas fa-arrow-left me-1"></i> 回 Dashboard
+                </button>
+                <button onclick="logout()" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i> 登出
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container-xl mt-4 mb-5">
+        
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="fas fa-file-alt me-2"></i> 表單簡介</h5>
+                        
+                        <p class="mb-2" id="formDescription" style="font-size:1rem; color:#444;">（無簡介）</p>
 
-<body>
-  <h2 id="formTitle">表單</h2>
+                        <button id="editDescBtn" class="btn btn-sm btn-outline-secondary" style="display:none;">
+                            <i class="fas fa-edit me-1"></i> 編輯簡介
+                        </button>
+                        
+                        <div id="descEditArea" class="mt-3" style="display:none;">
+                            <textarea id="descInput" class="form-control mb-2" rows="4" placeholder="輸入新的表單簡介"></textarea>
+                            <button id="saveDescBtn" class="btn btn-primary btn-sm me-2"><i class="fas fa-save me-1"></i> 儲存簡介</button>
+                            <button id="cancelDescBtn" class="btn btn-outline-danger btn-sm"><i class="fas fa-times me-1"></i> 取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success"><i class="fas fa-user-tag me-2"></i> 角色與總結</h5>
+                        <p id="roleInfo" class="mb-2 text-muted"></p>
+                        <div id="summaryArea"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <!-- 表單簡介顯示區 -->
-  <div style="margin-bottom:8px;">
-    <span id="formDescription" style="font-size:14px; color:#444;"></span>
-    <button id="editDescBtn" style="margin-left:10px; display:none;">編輯簡介</button>
-  </div>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i> 訂單明細</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" id="table">
+                        <thead class="table-primary" id="thead"></thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-  <!-- 編輯區 -->
-  <div id="descEditArea" style="display:none; margin-bottom:12px;">
-    <textarea id="descInput" rows="4" cols="60"></textarea><br>
-    <button id="saveDescBtn">儲存簡介</button>
-    <button id="cancelDescBtn">取消</button>
-  </div>
+        <div id="addArea" class="card shadow-sm" style="display: none;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i> 新增訂單項目</h5>
+            </div>
+            <div class="card-body">
+                <div id="addInputs" class="row row-cols-1 row-cols-md-3 g-3">
+                    </div>
+                <hr class="my-4">
+                <button id="addBtn" class="btn btn-success me-2"><i class="fas fa-check me-1"></i> 確認新增</button>
+                <button id="clearBtn" class="btn btn-danger"><i class="fas fa-trash-alt me-1"></i> 清空所有訂單</button>
+            </div>
+        </div>
 
-  <div id="roleInfo"></div>
-  <div id="summaryArea"></div>
+    </div>
 
-  <table border="1" id="table">
-    <thead id="thead"></thead>
-    <tbody id="tbody"></tbody>
-  </table>
-
-  <div id="addArea">
-    <h3>新增一列</h3>
-    <div id="addInputs"></div>
-    <button id="addBtn">新增</button>
-    <button id="clearBtn">清空全部</button>
-  </div>
-
-  <button onclick="location.href='/dashboard'">回 Dashboard</button>
-
-<script src="/static/api.js"></script>
+<script src="{{ url_for('static', filename='api.js') }}"></script>
 <script>
+// ----------------------------------------------------------------------
+// 全域變數和初始化
+// ----------------------------------------------------------------------
+
+// 確保函式存在，以便 Navbar 中的按鈕可以使用
+function logout(){
+    if(confirm("確定登出嗎？")){
+        localStorage.removeItem("form_id");
+        localStorage.removeItem("form_role");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("username");
+        location.href = "/login";
+    }
+}
+
 const form_id = localStorage.getItem("form_id");
 const user_id = localStorage.getItem("user_id");
 const user_email = localStorage.getItem("email");
 let currentForm = null;
 let isOwner = false;
 
+// ----------------------------------------------------------------------
+// 載入與初始化
+// ----------------------------------------------------------------------
 async function build(){
-  const res = await apiGetForm(form_id, user_id);
-  if(!res.success){
-    alert(res.message || "讀取失敗");
-    location.href = "/dashboard";
-    return;
-  }
-
-  currentForm = res.form;
-  isOwner = res.is_owner;
-
-console.log("後端回傳 fields =", currentForm.fields);
-
-
-
-  document.getElementById("formTitle").innerText = currentForm.title || "表單";
-  document.getElementById("formDescription").innerText =
-      currentForm.description ? ("表單簡介： " + currentForm.description) : "（無簡介）";
-
-  const editBtn = document.getElementById("editDescBtn");
-  if(isOwner){
-    editBtn.style.display = "inline-block";
-    editBtn.onclick = () => {
-      document.getElementById("descInput").value = currentForm.description || "";
-      document.getElementById("descEditArea").style.display = "block";
-      editBtn.style.display = "none";
-    };
-  } else {
-    editBtn.style.display = "none";
-    document.getElementById("descEditArea").style.display = "none";
-  }
-
-  document.getElementById("saveDescBtn").onclick = async () => {
-    const newDesc = document.getElementById("descInput").value;
-    const r = await apiUpdateFormDescription(form_id, newDesc);
-    if(r && r.success){
-      alert("簡介已更新");
-      document.getElementById("descEditArea").style.display = "none";
-      build();
-    } else {
-      alert("更新失敗");
+    const res = await apiGetForm(form_id, user_id);
+    if(!res.success){
+        alert(res.message || "讀取失敗");
+        location.href = "{{ url_for('dashboard_page') }}";
+        return;
     }
-  };
-  document.getElementById("cancelDescBtn").onclick = () => {
-    document.getElementById("descEditArea").style.display = "none";
-    if(isOwner) editBtn.style.display = "inline-block";
-  };
 
-  document.getElementById("roleInfo").innerText =
-      isOwner ? "您是賣家（可編輯）" : "您是買家（僅檢視您自己的訂單）";
+    currentForm = res.form;
+    isOwner = res.is_owner;
 
-  renderStructure(currentForm.fields, isOwner);
-  renderRows(currentForm.rows, isOwner);
-  renderSummary(res.summary_by_buyer);
+    // 1. 處理標題與簡介
+    document.getElementById("formTitle").innerText = currentForm.title || "表單";
+    document.getElementById("formDescription").innerText =
+        currentForm.description ? currentForm.description : "（無簡介）";
 
-  if(isOwner){
-    const rb = await apiRecentBuyers(form_id);
-    window.recentBuyers = rb.recent_buyers || [];
-    buildBuyerAutocomplete();
-  } else {
-    document.getElementById("addArea").style.display = "none";
-  }
+    const editBtn = document.getElementById("editDescBtn");
+    const descEditArea = document.getElementById("descEditArea");
+    if(isOwner){
+        editBtn.style.display = "inline-block";
+        editBtn.onclick = () => {
+            document.getElementById("descInput").value = currentForm.description || "";
+            descEditArea.style.display = "block";
+            editBtn.style.display = "none";
+        };
+    } else {
+        editBtn.style.display = "none";
+        descEditArea.style.display = "none";
+    }
+
+    // 2. 簡介編輯邏輯
+    document.getElementById("saveDescBtn").onclick = async () => {
+        const newDesc = document.getElementById("descInput").value;
+        const r = await apiUpdateFormDescription(form_id, newDesc);
+        if(r && r.success){
+            alert("簡介已更新");
+            descEditArea.style.display = "none";
+            build(); // 重新載入
+        } else {
+            alert("更新失敗");
+        }
+    };
+    document.getElementById("cancelDescBtn").onclick = () => {
+        descEditArea.style.display = "none";
+        if(isOwner) editBtn.style.display = "inline-block";
+    };
+
+    // 3. 顯示角色資訊
+    document.getElementById("roleInfo").innerText =
+        isOwner ? "您是賣家（可編輯）" : "您是買家（僅檢視您自己的訂單）";
+    
+    // 4. 渲染核心數據
+    renderStructure(currentForm.fields, isOwner);
+    renderRows(currentForm.rows, isOwner);
+    renderSummary(res.summary_by_buyer);
+
+    // 5. 賣家專屬功能
+    if(isOwner){
+        document.getElementById("addArea").style.display = "block"; // 顯示新增區
+        const rb = await apiRecentBuyers(form_id);
+        window.recentBuyers = rb.recent_buyers || [];
+        buildBuyerAutocomplete();
+    } else {
+        document.getElementById("addArea").style.display = "none";
+    }
 }
 
+// ----------------------------------------------------------------------
+// 渲染功能
+// ----------------------------------------------------------------------
+
 function renderSummary(summary){
-  const area = document.getElementById("summaryArea");
-  area.innerHTML = "<h4>買家總計</h4>";
-  for(const name in summary){
-    area.innerHTML += `<div>${name}: ${summary[name].toFixed(2)} 元</div>`;
-  }
+    const area = document.getElementById("summaryArea");
+    area.innerHTML = `<h6>總金額概覽：</h6>`;
+    let total = 0;
+    for(const name in summary){
+        total += summary[name];
+        area.innerHTML += `<div class="text-sm">
+            <i class="fas fa-tag me-1 text-success"></i> <strong>${name}</strong>: 
+            <span class="fw-bold text-danger">${summary[name].toFixed(2)}</span> 元
+        </div>`;
+    }
+    area.innerHTML = `<p class="fw-bold mb-1">所有買家總計: <span class="text-primary">${total.toFixed(2)}</span> 元</p>` + area.innerHTML;
 }
 
 function renderStructure(fields, owner){
-  const thead = document.getElementById("thead");
-  const addInputs = document.getElementById("addInputs");
-  thead.innerHTML = ""; addInputs.innerHTML = "";
+    const thead = document.getElementById("thead");
+    const addInputs = document.getElementById("addInputs");
+    thead.innerHTML = ""; addInputs.innerHTML = "";
 
-  const cols = [
-    {k:"buyer_name", label:"買家"},
-    {k:"buyer_email", label:"買家 Email"},
-    {k:"item_name", label:"物品名稱"},
-    {k:"item_qty", label:"數量"},
-    {k:"item_price", label:"單價"},
-    {k:"item_total", label:"須匯款金額"}
-  ];
-  if(fields.remittance) cols.push({k:"remittance", label:"已匯款"});
-  if(fields.shipped) cols.push({k:"shipped", label:"出貨日期"});
-  if(fields.shipping_fee) cols.push({k:"shipping_fee", label: currentForm.fields.merge_shipping ? "運費" : "運費(需二補)"});
-  if(fields.buyer_social && owner) cols.push({k:"buyer_social", label:"買家社群（僅賣家可見）"});
-  cols.push({k:"actions", label:"操作"});
+    const cols = [
+        {k:"buyer_name", label:"買家"},
+        {k:"buyer_email", label:"買家 Email"},
+        {k:"item_name", label:"物品名稱"},
+        {k:"item_qty", label:"數量"},
+        {k:"item_price", label:"單價"},
+        {k:"item_total", label:"須匯款金額"}
+    ];
+    if(fields.remittance) cols.push({k:"remittance", label:"已匯款"});
+    if(fields.shipped) cols.push({k:"shipped", label:"出貨日期"});
+    if(fields.shipping_fee) cols.push({k:"shipping_fee", label: fields.merge_shipping ? "運費" : "運費(需二補)"});
+    if(fields.buyer_social && owner) cols.push({k:"buyer_social", label:"買家社群"});
+    cols.push({k:"actions", label:"操作"});
 
-  let tr = "<tr>";
-  cols.forEach(c=> tr += `<th>${c.label}</th>`);
-  tr += "</tr>";
-  thead.innerHTML = tr;
+    // 表格標頭
+    let tr = "<tr>";
+    cols.forEach(c=> tr += `<th>${c.label}</th>`);
+    tr += "</tr>";
+    thead.innerHTML = tr;
 
-  if(owner){
-    addInputs.innerHTML = `
-      買家：<input id="in_buyer_name"><br>
-      買家 Email：<input id="in_buyer_email" list="recentList"><datalist id="recentList"></datalist><br>
-      物品名稱：<input id="in_item_name"><br>
-      數量：<input id="in_item_qty" type="number"><br>
-      單價：<input id="in_item_price" type="number"><br>
-      ${fields.remittance ? '是否匯款：<input type="checkbox" id="in_remittance"><br>' : ''}
-      ${fields.shipped ? '出貨：<input type="checkbox" id="in_shipped"> 出貨日：<input type="date" id="in_shipped_date" style="display:none;"><br>' : ''}
-      ${fields.shipping_fee ? `運費：<input id="in_shipping_fee" type="number"><br>` : ''}
-      ${fields.buyer_social ? '買家社群：<input id="in_buyer_social"><br>' : ''}
-    `;
+    // 新增輸入區塊 (使用 Bootstrap Grid)
+    if(owner){
+        addInputs.innerHTML = `
+            <div class="col"><label class="form-label">買家</label><input id="in_buyer_name" class="form-control"></div>
+            <div class="col"><label class="form-label">買家 Email</label><input id="in_buyer_email" class="form-control" list="recentList"><datalist id="recentList"></datalist></div>
+            <div class="col"><label class="form-label">物品名稱</label><input id="in_item_name" class="form-control"></div>
+            <div class="col"><label class="form-label">數量</label><input id="in_item_qty" type="number" class="form-control" value="1"></div>
+            <div class="col"><label class="form-label">單價</label><input id="in_item_price" type="number" class="form-control" value="0"></div>
+            
+            ${fields.shipping_fee ? `
+            <div class="col"><label class="form-label">運費</label><input id="in_shipping_fee" type="number" class="form-control" value="0"></div>` : ''}
 
-    setTimeout(()=>{
-      const sh = document.getElementById("in_shipped");
-      if(sh) sh.addEventListener("change", ()=>{
-        const dd = document.getElementById("in_shipped_date");
-        if(sh.checked){
-          dd.style.display = "inline";
-          dd.value = new Date().toISOString().slice(0,10);
-        } else dd.style.display="none";
-      });
-    },100);
-  } else {
-    addInputs.innerHTML = "";
-    document.getElementById("addArea").style.display = "none";
-  }
+            ${fields.buyer_social ? `
+            <div class="col"><label class="form-label">買家社群</label><input id="in_buyer_social" class="form-control"></div>` : ''}
+            
+            <div class="col-12 mt-3">
+                ${fields.remittance ? `<div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="in_remittance">
+                    <label class="form-check-label" for="in_remittance">已匯款</label>
+                </div>` : ''}
+                
+                ${fields.shipped ? `<div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="in_shipped">
+                    <label class="form-check-label" for="in_shipped">已出貨</label>
+                </div>
+                <input type="date" id="in_shipped_date" class="form-control form-control-sm d-inline-block w-auto" style="display:none; margin-left:10px;">` : ''}
+            </div>
+        `;
+
+        // 出貨日期邏輯
+        setTimeout(()=>{
+            const sh = document.getElementById("in_shipped");
+            if(sh) sh.addEventListener("change", ()=>{
+                const dd = document.getElementById("in_shipped_date");
+                if(sh.checked){
+                    dd.style.display = "inline-block";
+                    dd.value = new Date().toISOString().slice(0,10);
+                } else {
+                    dd.style.display="none";
+                    dd.value = '';
+                }
+            });
+        },100);
+    } 
 }
 
 function renderRows(rows, owner){
-  const tbody = document.getElementById("tbody");
-  tbody.innerHTML = "";
-  rows.forEach((r, idx)=>{
-    const tr = document.createElement("tr");
-    const shippedText = r.shipped ? r.shipped : "未出貨";
-    let html = `<td>${r.buyer_name||""}</td>
-                <td>${r.buyer_email||""}</td>
-                <td>${r.item_name||""}</td>
-                <td>${r.item_qty ?? ""}</td>
-                <td>${r.item_price ?? ""}</td>
-                <td>${(r.item_total ?? 0).toFixed(2)}</td>`;
-    if(currentForm.fields.remittance) html += `<td>${r.remittance ? "✓": ""}</td>`;
-    if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
-    if(currentForm.fields.shipping_fee) html += `<td>${r.shipping_fee ?? ""}</td>`;
-    if(currentForm.fields.buyer_social && owner) html += `<td>${r.buyer_social||""}</td>`;
-    html += owner ? `<td><button class="editBtn">編輯</button> <button class="deleteBtn">刪除</button></td>` : `<td>—</td>`;
-    tr.innerHTML = html;
-    tr.dataset.index = idx;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    
+    // 如果不是賣家，只顯示自己的訂單
+    const displayRows = owner ? rows : rows.filter(r => r.buyer_email === user_email);
 
-  if(owner){
-    document.querySelectorAll(".editBtn").forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
-        const tr = e.target.closest("tr");
-        startEdit(tr, Number(tr.dataset.index));
-      });
+    if (displayRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${document.getElementById("thead").querySelector('tr').children.length}" class="text-center text-muted py-3">目前沒有訂單數據。</td></tr>`;
+        return;
+    }
+
+    displayRows.forEach((r, idx)=>{
+        const tr = document.createElement("tr");
+        const shippedText = r.shipped ? r.shipped : "未出貨";
+        
+        let html = `
+            <td>${r.buyer_name||""}</td>
+            <td>${r.buyer_email||""}</td>
+            <td>${r.item_name||""}</td>
+            <td>${r.item_qty ?? ""}</td>
+            <td>${r.item_price ?? ""}</td>
+            <td><span class="fw-bold text-danger">${(r.item_total ?? 0).toFixed(2)}</span></td>`;
+        
+        if(currentForm.fields.remittance) html += `<td>${r.remittance ? '<i class="fas fa-check-circle text-success"></i>': '<i class="fas fa-times-circle text-danger"></i>'}</td>`;
+        if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
+        if(currentForm.fields.shipping_fee) html += `<td>${r.shipping_fee ?? ""}</td>`;
+        if(currentForm.fields.buyer_social && owner) html += `<td>${r.buyer_social||""}</td>`;
+        
+        // 操作按鈕
+        if (owner) {
+             html += `<td>
+                <button class="editBtn btn btn-sm btn-outline-primary me-1"><i class="fas fa-pen"></i></button> 
+                <button class="deleteBtn btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+             </td>`;
+        } else {
+             html += `<td>—</td>`;
+        }
+        
+        tr.innerHTML = html;
+        tr.dataset.index = idx;
+        tbody.appendChild(tr);
     });
-    document.querySelectorAll(".deleteBtn").forEach(btn=>{
-      btn.addEventListener("click", async (e)=>{
-        const tr = e.target.closest("tr");
-        const idx = Number(tr.dataset.index);
-        if(!confirm("確定刪除？")) return;
-        const res = await apiDeleteRow(form_id, user_id, idx);
-        if(res.success) build(); else alert("刪除失敗");
-      });
-    });
-  }
+
+    // 綁定編輯/刪除事件
+    if(owner){
+        document.querySelectorAll(".editBtn").forEach(btn=>{
+            btn.addEventListener("click", (e)=>{
+                const tr = e.target.closest("tr");
+                startEdit(tr, Number(tr.dataset.index));
+            });
+        });
+        document.querySelectorAll(".deleteBtn").forEach(btn=>{
+            btn.addEventListener("click", async (e)=>{
+                const tr = e.target.closest("tr");
+                const idx = Number(tr.dataset.index);
+                if(!confirm("確定刪除此筆訂單？")) return;
+                const res = await apiDeleteRow(form_id, user_id, idx);
+                if(res.success) build(); else alert("刪除失敗");
+            });
+        });
+    }
 }
 
 function startEdit(tr, index){
-  const tds = tr.querySelectorAll("td");
-  tds[0].innerHTML = `<input value="${tds[0].innerText}">`;
-  tds[1].innerHTML = `<input value="${tds[1].innerText}">`;
-  tds[2].innerHTML = `<input value="${tds[2].innerText}">`;
-  tds[3].innerHTML = `<input type="number" value="${tds[3].innerText}">`;
-  tds[4].innerHTML = `<input type="number" value="${tds[4].innerText}">`;
-  tds[5].innerText = "";
+    // 儲存原始內容，以便取消時恢復
+    const originalHTML = tr.innerHTML;
+    const tds = tr.querySelectorAll("td");
+    
+    // 替換 TD 內容為 Input 欄位
+    tds[0].innerHTML = `<input class="form-control form-control-sm" value="${tds[0].innerText}">`;
+    tds[1].innerHTML = `<input class="form-control form-control-sm" value="${tds[1].innerText}">`;
+    tds[2].innerHTML = `<input class="form-control form-control-sm" value="${tds[2].innerText}">`;
+    tds[3].innerHTML = `<input type="number" class="form-control form-control-sm" value="${tds[3].innerText}">`;
+    tds[4].innerHTML = `<input type="number" class="form-control form-control-sm" value="${tds[4].innerText}">`;
+    tds[5].innerText = ""; // 總金額欄位清空，等待計算
 
-  let col = 6;
-  if(currentForm.fields.remittance){
-    tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${tds[col].innerText.trim() ? "checked":""}>`;
-    col++;
-  }
-  if(currentForm.fields.shipped){
-    const val = tds[col].innerText === "未出貨" ? "" : tds[col].innerText;
-    tds[col].innerHTML = `<input type="date" id="edit_shipped" value="${val}">`;
-    col++;
-  }
-  if(currentForm.fields.shipping_fee){
-    tds[col].innerHTML = `<input type="number" id="edit_shipfee" value="${tds[col].innerText||0}">`;
-    col++;
-  }
-  if(currentForm.fields.buyer_social){
-    tds[col].innerHTML = `<input id="edit_social" value="${tds[col].innerText||''}">`;
-    col++;
-  }
+    let col = 6;
+    if(currentForm.fields.remittance){
+        const isChecked = tds[col].querySelector('i.fa-check-circle');
+        tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${isChecked ? "checked":""}>`;
+        col++;
+    }
+    if(currentForm.fields.shipped){
+        const val = tds[col].innerText === "未出貨" ? "" : tds[col].innerText;
+        tds[col].innerHTML = `<input type="date" id="edit_shipped" class="form-control form-control-sm" value="${val}">`;
+        col++;
+    }
+    if(currentForm.fields.shipping_fee){
+        const shippingFeeValue = currentForm.rows[index].shipping_fee ?? 0;
+        tds[col].innerHTML = `<input type="number" id="edit_shipfee" class="form-control form-control-sm" value="${shippingFeeValue}">`;
+        col++;
+    }
+    if(currentForm.fields.buyer_social){
+        tds[col].innerHTML = `<input id="edit_social" class="form-control form-control-sm" value="${tds[col].innerText||''}">`;
+        col++;
+    }
 
-  tds[tds.length-1].innerHTML = `<button id="saveBtn">完成</button> <button id="cancelBtn">取消</button>`;
+    // 操作按鈕替換為儲存/取消
+    tds[tds.length-1].innerHTML = `
+        <button id="saveBtn" class="btn btn-success btn-sm me-1"><i class="fas fa-save"></i> 儲存</button> 
+        <button id="cancelBtn" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times"></i> 取消</button>
+    `;
 
-  document.getElementById("saveBtn").addEventListener("click", async ()=>{
-    const buyer_name = tds[0].querySelector("input").value;
-    const buyer_email = tds[1].querySelector("input").value;
-    const item_name = tds[2].querySelector("input").value;
-    const item_qty = Number(tds[3].querySelector("input").value || 0);
-    const item_price = Number(tds[4].querySelector("input").value || 0);
+    document.getElementById("saveBtn").addEventListener("click", async ()=>{
+        const buyer_name = tds[0].querySelector("input").value;
+        const buyer_email = tds[1].querySelector("input").value;
+        const item_name = tds[2].querySelector("input").value;
+        const item_qty = Number(tds[3].querySelector("input").value || 0);
+        const item_price = Number(tds[4].querySelector("input").value || 0);
 
-    let remittance=false, shipped=null, shipping_fee=0, buyer_social=null;
-    if(currentForm.fields.remittance)
-      remittance = !!document.getElementById("edit_remit").checked;
-    if(currentForm.fields.shipped)
-      shipped = document.getElementById("edit_shipped").value || null;
-    if(currentForm.fields.shipping_fee)
-      shipping_fee = Number(document.getElementById("edit_shipfee").value || 0);
-    if(currentForm.fields.buyer_social)
-      buyer_social = document.getElementById("edit_social").value || null;
+        let remittance=false, shipped=null, shipping_fee=0, buyer_social=null;
+        if(currentForm.fields.remittance)
+            remittance = !!document.getElementById("edit_remit").checked;
+        if(currentForm.fields.shipped)
+            shipped = document.getElementById("edit_shipped").value || null;
+        if(currentForm.fields.shipping_fee)
+            shipping_fee = Number(document.getElementById("edit_shipfee").value || 0);
+        if(currentForm.fields.buyer_social)
+            buyer_social = document.getElementById("edit_social").value || null;
+
+        // ✅ 計算 item_total
+        let item_total = item_qty * item_price;
+        if(currentForm.fields.merge_shipping) item_total += shipping_fee;
+
+        const body = {
+            buyer_name, buyer_email, item_name, item_qty, item_price,
+            item_total, remittance, shipped, shipping_fee, buyer_social
+        };
+
+        const res = await apiUpdateRow(form_id, user_id, index, body);
+        if(res.success) build(); else alert("更新失敗");
+    });
+
+    // 取消按鈕恢復原始行
+    document.getElementById("cancelBtn").addEventListener("click", ()=> build());
+}
+
+function buildBuyerAutocomplete(){
+    const list = document.getElementById("recentList");
+    list.innerHTML = "";
+    (window.recentBuyers || []).forEach(e=>{
+        const opt = document.createElement("option");
+        opt.value = e;
+        list.appendChild(opt);
+    });
+}
+
+// ----------------------------------------------------------------------
+// 新增/清空事件
+// ----------------------------------------------------------------------
+document.getElementById("addBtn").addEventListener("click", async ()=>{
+    const buyer_name = document.getElementById("in_buyer_name").value;
+    const buyer_email = document.getElementById("in_buyer_email").value;
+    const item_name = document.getElementById("in_item_name").value;
+    const item_qty = Number(document.getElementById("in_item_qty").value || 0);
+    const item_price = Number(document.getElementById("in_item_price").value || 0);
+    
+    // 獲取可選欄位的值
+    const remittance = document.getElementById("in_remittance") ? !!document.getElementById("in_remittance").checked : false;
+    const shipped = document.getElementById("in_shipped") && document.getElementById("in_shipped").checked
+                        ? (document.getElementById("in_shipped_date").value || new Date().toISOString().slice(0,10))
+                        : null;
+    const shipping_fee = document.getElementById("in_shipping_fee")
+                            ? Number(document.getElementById("in_shipping_fee").value||0)
+                            : 0;
+    const buyer_social = document.getElementById("in_buyer_social")
+                            ? document.getElementById("in_buyer_social").value || null
+                            : null;
+
+    if(!buyer_name || !buyer_email || !item_name || item_qty === 0 || item_price === 0) {
+        alert("請確保買家姓名、Email、物品名稱、數量和單價都已輸入！");
+        return;
+    }
 
     // ✅ 計算 item_total
     let item_total = item_qty * item_price;
     if(currentForm.fields.merge_shipping) item_total += shipping_fee;
 
-    const body = {
-      buyer_name, buyer_email, item_name, item_qty, item_price,
-      item_total, remittance, shipped, shipping_fee, buyer_social
-    };
+    const row = { buyer_name, buyer_email, item_name, item_qty, item_price,
+                  item_total, remittance, shipped, shipping_fee, buyer_social };
 
-    const res = await apiUpdateRow(form_id, user_id, index, body);
-    if(res.success) build(); else alert("更新失敗");
-  });
-
-  document.getElementById("cancelBtn").addEventListener("click", ()=> build());
-}
-
-function buildBuyerAutocomplete(){
-  const list = document.getElementById("recentList");
-  list.innerHTML = "";
-  (window.recentBuyers || []).forEach(e=>{
-    const opt = document.createElement("option");
-    opt.value = e;
-    list.appendChild(opt);
-  });
-}
-
-document.getElementById("addBtn").addEventListener("click", async ()=>{
-  const buyer_name = document.getElementById("in_buyer_name").value;
-  const buyer_email = document.getElementById("in_buyer_email").value;
-  const item_name = document.getElementById("in_item_name").value;
-  const item_qty = Number(document.getElementById("in_item_qty").value || 0);
-  const item_price = Number(document.getElementById("in_item_price").value || 0);
-  const remittance = document.getElementById("in_remittance") ? !!document.getElementById("in_remittance").checked : false;
-  const shipped = document.getElementById("in_shipped") && document.getElementById("in_shipped").checked
-                   ? (document.getElementById("in_shipped_date").value || new Date().toISOString().slice(0,10))
-                   : null;
-  const shipping_fee = document.getElementById("in_shipping_fee")
-                      ? Number(document.getElementById("in_shipping_fee").value||0)
-                      : 0;
-  const buyer_social = document.getElementById("in_buyer_social")
-                       ? document.getElementById("in_buyer_social").value || null
-                       : null;
-
-  // ✅ 計算 item_total
-  let item_total = item_qty * item_price;
-  if(currentForm.fields.merge_shipping) item_total += shipping_fee;
-
-  const row = { buyer_name, buyer_email, item_name, item_qty, item_price,
-                item_total, remittance, shipped, shipping_fee, buyer_social };
-
-  const res = await apiAddRow(form_id, user_id, row);
-  if(res.success) build(); else alert("新增失敗");
+    const res = await apiAddRow(form_id, user_id, row);
+    if(res.success) build(); else alert("新增失敗");
 });
 
 document.getElementById("clearBtn").addEventListener("click", async ()=>{
-  if(!confirm("確定清空所有資料？")) return;
-  const res = await apiClearForm(form_id, user_id);
-  if(res.success) build(); else alert("清空失敗");
+    if(!confirm("確定清空此表單所有資料？此動作無法回復！")) return;
+    const res = await apiClearForm(form_id, user_id);
+    if(res.success) build(); else alert("清空失敗");
 });
 
+// ----------------------------------------------------------------------
+// 初始化
+// ----------------------------------------------------------------------
 build();
 </script>
 </body>
