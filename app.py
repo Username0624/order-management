@@ -68,20 +68,33 @@ def form_page():
 
 # ---------------- Auth ----------------
 @app.route("/api/register", methods=["POST"])
-def api_register():
-    data = request.get_json()
-    username = data.get("username") or ""
-    email = data.get("email")
-    password = data.get("password")
-    if not email or not password:
-        return jsonify({"success": False, "message": "請輸入 email 與密碼"}), 400
-    if users.find_one({"email": email}):
-        return jsonify({"success": False, "message": "Email 已被使用"}), 400
-    # 在註冊處
-    hashed = generate_password_hash(password)
-    res = users.insert_one({"username": username, "email": email, "password": hashed})
+def register():
+    try:
+        data = request.json
+        print("收到註冊資料:", data)
 
-    return jsonify({"success": True, "user_id": str(res.inserted_id), "username": username, "email": email})
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+
+        print("解析後:", username, email)
+
+        if not username or not email or not password:
+            return jsonify({"error": "缺少欄位"}), 400
+
+        result = users_col.insert_one({
+            "username": username,
+            "email": email,
+            "password": password
+        })
+
+        print("insert result:", result.inserted_id)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("註冊錯誤:", str(e))
+        return jsonify({"error": "server error"}), 500
 
 @app.route("/api/login", methods=["POST"])
 def api_login():
