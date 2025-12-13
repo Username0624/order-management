@@ -13,7 +13,7 @@ async function apiRegister(username, email, password) {
 }
 
 async function apiLogin(email, password){
-  const res = await fetch(`${API_BASE}/api/login`, {
+  const res = await fetch(`/api/login`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({email, password})
@@ -22,7 +22,7 @@ async function apiLogin(email, password){
 }
 
 async function apiUpdateUsername(user_id, username){
-  const res = await fetch(`${API_BASE}/api/update_username`, {
+  const res = await fetch(`/api/update_username`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({user_id, username})
@@ -41,7 +41,7 @@ function logout(){
 // Forms
 async function apiCreateForm(owner_id, owner_email, title, description, fields){
   const body = { owner_id, owner_email, title, description, fields };
-  const res = await fetch(`${API_BASE}/api/create_form`, {
+  const res = await fetch(`/api/create_form`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify(body)
@@ -51,16 +51,16 @@ async function apiCreateForm(owner_id, owner_email, title, description, fields){
 
 
 async function apiGetMyForms(user_id){
-  const res = await fetch(`${API_BASE}/api/my_forms/${user_id}`);
+  const res = await fetch(`/api/my_forms/${user_id}`);
   return res.json();
 }
 
 async function apiGetForm(form_id, user_id){
-  const res = await fetch(`${API_BASE}/api/form/${form_id}/${user_id}`);
+  const res = await fetch(`/api/form/${form_id}/${user_id}`);
   return res.json();
 }
 async function apiRequestPasswordReset(email){
-  const res = await fetch(`${API_BASE}/api/request_password_reset`, {
+  const res = await fetch(`/api/request_password_reset`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({email})
@@ -69,7 +69,7 @@ async function apiRequestPasswordReset(email){
 }
 
 async function apiForgotPassword(email){
-  const res = await fetch(`${API_BASE}/api/forgot_password`, {
+  const res = await fetch(`/api/forgot_password`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ email })
@@ -79,7 +79,7 @@ async function apiForgotPassword(email){
 
 
 async function apiAddViewer(form_id, owner_id, viewer_email){
-  const res = await fetch(`${API_BASE}/api/add_viewer`, {
+  const res = await fetch(`/api/add_viewer`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({form_id, owner_id, viewer_email})
@@ -88,7 +88,7 @@ async function apiAddViewer(form_id, owner_id, viewer_email){
 }
 
 async function apiRemoveViewer(form_id, owner_id, viewer_email){
-  const res = await fetch(`${API_BASE}/api/remove_viewer`, {
+  const res = await fetch(`/api/remove_viewer`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({form_id, owner_id, viewer_email})
@@ -99,7 +99,7 @@ async function apiRemoveViewer(form_id, owner_id, viewer_email){
 // Rows
 async function apiAddRow(form_id, owner_id, row){
   const body = Object.assign({form_id, owner_id}, row);
-  const res = await fetch(`${API_BASE}/api/add_row`, {
+  const res = await fetch(`/api/add_row`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify(body)
@@ -109,7 +109,7 @@ async function apiAddRow(form_id, owner_id, row){
 
 async function apiUpdateRow(form_id, owner_id, index, row){
   const body = Object.assign({form_id, owner_id, index}, row);
-  const res = await fetch(`${API_BASE}/api/update_row`, {
+  const res = await fetch(`/api/update_row`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify(body)
@@ -118,7 +118,7 @@ async function apiUpdateRow(form_id, owner_id, index, row){
 }
 
 async function apiDeleteRow(form_id, owner_id, index){
-  const res = await fetch(`${API_BASE}/api/delete_row`, {
+  const res = await fetch(`/api/delete_row`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({form_id, owner_id, index})
@@ -127,7 +127,7 @@ async function apiDeleteRow(form_id, owner_id, index){
 }
 
 async function apiClearForm(form_id, owner_id){
-  const res = await fetch(`${API_BASE}/api/clear_form`, {
+  const res = await fetch(`/api/clear_form`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({form_id, owner_id})
@@ -137,7 +137,7 @@ async function apiClearForm(form_id, owner_id){
 
 // 👍 最終正確版本（沒有重複）
 async function apiUpdateFormDescription(form_id, description){
-  const res = await fetch(`${API_BASE}/api/update_form_description`, {
+  const res = await fetch(`/api/update_form_description`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({form_id, description})
@@ -146,11 +146,11 @@ async function apiUpdateFormDescription(form_id, description){
 }
 
 async function apiRecentBuyers(form_id){
-  const res = await fetch(`${API_BASE}/api/recent_buyers/${form_id}`);
+  const res = await fetch(`/api/recent_buyers/${form_id}`);
   return res.json();
 }
 
 async function apiGetFormRows(form_id, viewer_email){
-  const res = await fetch(`${API_BASE}/api/form_rows?form_id=${form_id}&viewer_email=${viewer_email}`);
+  const res = await fetch(`/api/form_rows?form_id=${form_id}&viewer_email=${viewer_email}`);
   return res.json();
 }
