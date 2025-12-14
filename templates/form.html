@@ -7,7 +7,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJ8uR2gII9oMvW14jWc//Y4/l86iM/8U8/51L6I6w1YtJ5P5w5/2F/1L6W1P5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJ8uR2gII9oMvW14jWc//Y4/l86iMvW14jWc//Y4/l86iM/8U8/51L6I6w1YtJ5P5w5/2F/1L6W1P5w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> 
 </head>
@@ -278,11 +278,15 @@ function renderRows(rows, owner){
     const tbody = document.getElementById("tbody");
     tbody.innerHTML = "";
     
-    // 🌟 恢復權限邏輯：如果是買家，只顯示與當前登入 email 相符的訂單
-    const displayRows = owner ? rows : rows.filter(r => r.buyer_email === user_email);
+    // 🌟 修正點：移除前端的重複篩選邏輯 
+    // 由於後端 API 已經為 Viewer (非 Owner) 篩選過訂單，這裡直接使用回傳的 rows。
+    const displayRows = rows; // 以前的寫法: owner ? rows : rows.filter(r => r.buyer_email === user_email);
 
     if (displayRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${document.getElementById("thead").querySelector('tr').children.length}" class="text-center text-muted py-3">目前沒有訂單數據。</td></tr>`;
+        // 確保在沒有訂單時，表格表頭已存在，以便計算 colspan
+        const head = document.getElementById("thead").querySelector('tr');
+        const colspanCount = head ? head.children.length : 10; 
+        tbody.innerHTML = `<tr><td colspan="${colspanCount}" class="text-center text-muted py-3">目前沒有訂單數據。</td></tr>`;
         return;
     }
 
@@ -298,7 +302,7 @@ function renderRows(rows, owner){
             <td>${r.item_price ?? ""}</td>
             <td><span class="fw-bold text-danger">${(r.item_total ?? 0).toFixed(2)}</span></td>`;
         
-        // 🌟 修正「已匯款」：改用 Unicode 符號 ✓ 和 ✗ 
+        // 修正「已匯款」：改用 Unicode 符號 ✓ 和 ✗ 
         if(currentForm.fields.remittance) {
             const symbol = r.remittance ? 
                 '<span class="text-success fs-5 fw-bold" title="已匯款">✓</span>' : 
@@ -308,15 +312,17 @@ function renderRows(rows, owner){
         
         if(currentForm.fields.shipped) html += `<td>${shippedText}</td>`;
         if(currentForm.fields.shipping_fee) html += `<td>${r.shipping_fee ?? ""}</td>`;
+        
+        // 買家社群只在 Owner 模式下顯示
         if(currentForm.fields.buyer_social && owner) html += `<td>${r.buyer_social||""}</td>`;
         
         // 操作按鈕
         if (owner) {
              // 保留 Font Awesome 圖示用於操作按鈕
              html += `<td>
-                <button class="editBtn btn btn-sm btn-outline-primary me-1"><i class="fas fa-pen"></i></button> 
-                <button class="deleteBtn btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
-             </td>`;
+                 <button class="editBtn btn btn-sm btn-outline-primary me-1"><i class="fas fa-pen"></i></button> 
+                 <button class="deleteBtn btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+               </td>`;
         } else {
              html += `<td>—</td>`;
         }
@@ -361,8 +367,7 @@ function startEdit(tr, index){
 
     let col = 6;
     if(currentForm.fields.remittance){
-        // 🌟 修正「已匯款」編輯：檢查當前 TD 內容是否為 '✓' (表示已匯款)
-        // 確保不受舊的 Font Awesome 影響
+        // 修正「已匯款」編輯：檢查當前 TD 內容是否為 '✓' (表示已匯款)
         const isChecked = tds[col].innerText.includes('✓');
         tds[col].innerHTML = `<input type="checkbox" id="edit_remit" ${isChecked ? "checked":""}>`;
         col++;
@@ -377,7 +382,8 @@ function startEdit(tr, index){
         tds[col].innerHTML = `<input type="number" id="edit_shipfee" class="form-control form-control-sm" value="${shippingFeeValue}">`;
         col++;
     }
-    if(currentForm.fields.buyer_social){
+    // 買家社群只在 Owner 模式下可編輯
+    if(currentForm.fields.buyer_social && isOwner){
         tds[col].innerHTML = `<input id="edit_social" class="form-control form-control-sm" value="${tds[col].innerText||''}">`;
         col++;
     }
@@ -396,14 +402,25 @@ function startEdit(tr, index){
         const item_price = Number(tds[4].querySelector("input").value || 0);
 
         let remittance=false, shipped=null, shipping_fee=0, buyer_social=null;
-        if(currentForm.fields.remittance)
+        
+        // 由於 Owner 才能編輯，這裡不需檢查 isOwner
+        let current_col = 6;
+        if(currentForm.fields.remittance) {
             remittance = !!document.getElementById("edit_remit").checked;
-        if(currentForm.fields.shipped)
+            current_col++;
+        }
+        if(currentForm.fields.shipped) {
             shipped = document.getElementById("edit_shipped").value || null;
-        if(currentForm.fields.shipping_fee)
+            current_col++;
+        }
+        if(currentForm.fields.shipping_fee) {
             shipping_fee = Number(document.getElementById("edit_shipfee").value || 0);
-        if(currentForm.fields.buyer_social)
+            current_col++;
+        }
+        if(currentForm.fields.buyer_social) {
             buyer_social = document.getElementById("edit_social").value || null;
+            current_col++;
+        }
 
         // ✅ 計算 item_total
         let item_total = item_qty * item_price;
@@ -445,14 +462,14 @@ document.getElementById("addBtn").addEventListener("click", async ()=>{
     // 獲取可選欄位的值
     const remittance = document.getElementById("in_remittance") ? !!document.getElementById("in_remittance").checked : false;
     const shipped = document.getElementById("in_shipped") && document.getElementById("in_shipped").checked
-                        ? (document.getElementById("in_shipped_date").value || new Date().toISOString().slice(0,10))
-                        : null;
+                         ? (document.getElementById("in_shipped_date").value || new Date().toISOString().slice(0,10))
+                         : null;
     const shipping_fee = document.getElementById("in_shipping_fee")
-                            ? Number(document.getElementById("in_shipping_fee").value||0)
-                            : 0;
+                             ? Number(document.getElementById("in_shipping_fee").value||0)
+                             : 0;
     const buyer_social = document.getElementById("in_buyer_social")
-                            ? document.getElementById("in_buyer_social").value || null
-                            : null;
+                             ? document.getElementById("in_buyer_social").value || null
+                             : null;
 
     if(!buyer_name || !buyer_email || !item_name || item_qty === 0 || item_price === 0) {
         alert("請確保買家姓名、Email、物品名稱、數量和單價都已輸入！");
