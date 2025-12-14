@@ -1,6 +1,10 @@
 # 📦 Personal Shopping WMS: Warehouse & Logistics Management System
-[youtube link](https://youtu.be/FvuIHIclPz0z)
-[final link](https://order-management-803v.onrender.com)
+
+* [youtube](https://youtu.be/FvuIHIclPz0z)
+
+* [System website link](https://order-management-803v.onrender.com)
+
+---
 ## 🌟 Project Overview
 
 This system is a lightweight Warehouse and Logistics Management Solution specifically engineered for **Personal Shopping Sellers**.
