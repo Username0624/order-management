@@ -55,9 +55,16 @@ async function apiGetMyForms(user_id){
   return res.json();
 }
 
-async function apiGetForm(form_id, user_id){
-  const res = await fetch(`/api/form/${form_id}/${user_id}`);
-  return res.json();
+async function apiGetForm(formId, userId) {
+    // 確保這裡的 URL 變數名是正確的： formId 和 userId
+    const url = `/api/form/${formId}/${userId}`; 
+    try {
+        const response = await fetch(url);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching form data:', error);
+        return { success: false, message: '連線錯誤，無法載入表單資料' };
+    }
 }
 async function apiRequestPasswordReset(email){
   const res = await fetch(`/api/request_password_reset`, {
