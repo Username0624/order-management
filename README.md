@@ -2,16 +2,16 @@
 
 ## 🌟 Project Overview
 
-[cite_start]This system is a lightweight Warehouse and Logistics Management Solution specifically engineered for **Personal Shopping Sellers**[cite: 2, 3].
+This system is a lightweight Warehouse and Logistics Management Solution specifically engineered for **Personal Shopping Sellers**.
 
-[cite_start]Traditional enterprise WMS/Logistics systems are often complex, expensive, and over-engineered, making them unsuitable for small, individual personal shoppers[cite: 5]. [cite_start]This project aims to provide a transparent, efficient, and specialized platform to resolve core pain points in personal shopping workflows [cite: 1][cite_start]: communication chaos, difficulty in order tracking, and high buyer-seller support costs[cite: 17, 19, 21].
+Traditional enterprise WMS/Logistics systems are often complex, expensive, and over-engineered, making them unsuitable for small, individual personal shoppers. This project aims to provide a transparent, efficient, and specialized platform to resolve core pain points in personal shopping workflows: communication chaos, difficulty in order tracking, and high buyer-seller support costs.
 
-### [cite_start]🎯 Target Users [cite: 31, 32]
+### 🎯 Target Users
 
 | Category | User Group | Core Problem Solved |
 | :--- | :--- | :--- |
-| **Primary** | [cite_start]**Personal Shoppers** [cite: 33] | [cite_start]Provides a centralized, low-cost system to manage orders, items, and logistics statuses[cite: 27]. |
-| **Stakeholder** | [cite_start]**Buyers** [cite: 34] | [cite_start]Enables buyers to track their order status autonomously, improving transparency and reducing friction[cite: 29, 34]. |
+| **Primary** | **Personal Shoppers**|Provides a centralized, low-cost system to manage orders, items, and logistics statuses. |
+| **Stakeholder** | **Buyers** |Enables buyers to track their order status autonomously, improving transparency and reducing friction. |
 
 -----
 
@@ -23,20 +23,20 @@ The system is designed around two main user scenarios: the Seller (Personal Shop
 
 The seller uses the system to manage the entire lifecycle of an order:
 
-1.  [cite_start]**Customer Management:** Maintain records of customers (name, phone, address, social media)[cite: 25, 38, 39, 40, 41].
-2.  [cite_start]**Order Creation:** Input new orders, including buyer email, item name, quantity, and price[cite: 51, 52, 53]. [cite_start]The system automatically calculates the `total_amount`[cite: 48].
-3.  [cite_start]**Status Updates:** Use the detailed order table to update logistics and payment status[cite: 27]:
+1.  **Customer Management:** Maintain records of customers (name, phone, address, social media): 25, 38, 39, 40, 41].
+2.  **Order Creation:** Input new orders, including buyer email, item name, quantity, and price: 51, 52, 53]. The system automatically calculates the `total_amount`: 48].
+3.  **Status Updates:** Use the detailed order table to update logistics and payment status: 27]:
       * Mark payment as **Remitted (已匯款)**.
-      * [cite_start]Mark fulfillment as **Shipped (已出貨)**, automatically recording the `shipped_date`[cite: 47].
-4.  [cite_start]**Reporting:** View automated reports, specifically the **Summary by Buyer**, to quickly reconcile total payments[cite: 28].
+      * Mark fulfillment as **Shipped (已出貨)**, automatically recording the `shipped_date`.
+4.  **Reporting:** View automated reports, specifically the **Summary by Buyer**, to quickly reconcile total payments.
 
 ### 2\. Buyer Usage Flow (Tracking)
 
-[cite_start]The buyer only needs to track their purchased items[cite: 34]:
+The buyer only needs to track their purchased items:
 
 1.  **Access:** Buyers receive a unique link or log in with their email.
 2.  **Order View:** The system automatically filters the order data, showing *only* the rows associated with the buyer's email address (as seen in the debug logs).
-3.  [cite_start]**Progress Check:** Buyers view the real-time status of their item (Remittance, Shipped Date) without needing to contact the seller[cite: 17].
+3.  **Progress Check:** Buyers view the real-time status of their item (Remittance, Shipped Date) without needing to contact the seller.
 
 -----
 
@@ -46,21 +46,21 @@ The project is built on the following robust technologies:
 
 | Category | Technology | Description | Source |
 | :--- | :--- | :--- | :--- |
-| **Backend** | Flask (Python) | [cite_start]Lightweight framework handling CRUD operations and API endpoints[cite: 58]. |
-| **Database** | MongoDB | [cite_start]NoSQL database for flexible and scalable data management[cite: 60]. |
-| **Frontend** | HTML, Bootstrap | [cite_start]Responsible for the User Interface (UI) and buyer-side tracking interface[cite: 59]. |
+| **Backend** | Flask (Python) | Lightweight framework handling CRUD operations and API endpoints. |
+| **Database** | MongoDB | NoSQL database for flexible and scalable data management. |
+| **Frontend** | HTML, Bootstrap | Responsible for the User Interface (UI) and buyer-side tracking interface. |
 
 -----
 
 ## 📚 Database Schema (MongoDB Collections)
 
-[cite_start]The database design utilizes three primary collections[cite: 60]:
+The database design utilizes three primary collections:
 
 | Collection | Key Fields | Relationships |
 | :--- | :--- | :--- |
-| [cite_start]`customers` [cite: 37] | [cite_start]`_id` (PK) [cite: 38][cite_start], `name` [cite: 39][cite_start], `email`, `address` [cite: 41] | Stores buyer contact and social information. |
-| [cite_start]`items` [cite: 49] | [cite_start]`_id` (PK) [cite: 50][cite_start], `item_name` [cite: 51][cite_start], `price` [cite: 52][cite_start], `stock` [cite: 53] | Stores product details. |
-| [cite_start]`orders` [cite: 42] | [cite_start]`_id` (PK) [cite: 43][cite_start], `customer_id` (FK → `customers._id`) [cite: 44, 45][cite_start], `status` [cite: 47][cite_start], `total_amount` [cite: 48] | Stores transaction and logistics status. |
+| `customers` | `_id` (PK) , `name` , `email`, `address` | Stores buyer contact and social information. |
+| `items` | `_id` (PK), `item_name`, `price` , `stock`  | Stores product details. |
+| `orders`  | `_id` (PK) , `customer_id` (FK → `customers._id`, `status` , `total_amount`  | Stores transaction and logistics status. |
 
 -----
 
