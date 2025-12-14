@@ -385,15 +385,16 @@ def api_my_forms(user_id):
     viewable = [conv(f) for f in viewable]
     return jsonify({"owned": owned, "viewable": viewable})
 
-
 @app.route("/api/form/<form_id>/<user_id>", methods=["GET"])
 def api_get_form(form_id, user_id):
     f = forms.find_one({"_id": ObjectId(form_id)})
     if not f:
+        print(f"DEBUG: Form ID {form_id} not found.")
         return jsonify({"success": False, "message": "找不到表單"}), 404
     
     user = users.find_one({"_id": ObjectId(user_id)})
     if not user:
+        print(f"DEBUG: User ID {user_id} not found.")
         return jsonify({"success": False, "message": "找不到使用者"}), 404
         
     email = user["email"]
@@ -402,34 +403,52 @@ def api_get_form(form_id, user_id):
     is_owner = (f.get("owner_id") == user_id)
     is_viewer = (email in f.get("allowed_viewers", []))
     
+    print(f"\n--- DEBUG: api_get_form Start ({form_id}) ---")
+    print(f"DEBUG: User Email: {email}")
+    print(f"DEBUG: is_owner: {is_owner}, is_viewer: {is_viewer}")
+    print(f"DEBUG: Allowed Viewers: {f.get('allowed_viewers', [])}")
+    
     # 權限檢查：必須是擁有者，或者被允許的檢視者 (且已登入)
     if not (is_owner or is_viewer):
+        print(f"DEBUG: Access denied for {email} (No Owner/Viewer status).")
         return jsonify({"success": False, "message": "沒有權限檢視"}), 403
 
     # 建立回傳 rows
     rows = []
-    for r in f.get("rows", []):
+    
+    # 🚨 檢查 rows 總數
+    total_rows_in_db = len(f.get("rows", []))
+    print(f"DEBUG: Total rows in DB: {total_rows_in_db}")
+    
+    for i, r in enumerate(f.get("rows", [])):
         row_copy = dict(r) # 複製訂單資料
         
         if is_owner:
-            # 擁有者：回傳所有訂單，包含買家社群資訊
+            # 擁有者：回傳所有訂單
             rows.append(row_copy)
-        
+            
         elif is_viewer:
             # 檢視者/買家：只回傳該買家自己 Email 匹配的訂單
-            if row_copy.get("buyer_email") == email:
-                # 為了保護隱私，隱藏買家社群資訊
+            buyer_email_in_row = row_copy.get("buyer_email")
+            
+            # 🚨 偵錯輸出：比對 Email
+            print(f"DEBUG: Row {i+1} Buyer Email: '{buyer_email_in_row}'")
+            print(f"DEBUG: Row {i+1} Match Check: {buyer_email_in_row == email} (Login Email: '{email}')")
+            
+            if buyer_email_in_row == email:
+                # 匹配成功，加入 rows
                 row_copy.pop("buyer_social", None) 
                 rows.append(row_copy)
+            # else: 匹配失敗，跳過該筆訂單
 
+    print(f"DEBUG: Filtered rows count: {len(rows)}")
+    print(f"--- DEBUG: api_get_form End ---")
+    
     # ---------------- 統計資料 (summary) ----------------
     summary = {}
     for r in f.get("rows", []):
         name = r.get("buyer_name","")
         total = float(r.get("item_total", 0) or 0)
-        
-        # 為了簡化，讓擁有者可以看到完整的 summary，檢視者可以自己計算
-        # 如果要讓檢視者只能看到自己的總額，則這裡需增加 is_viewer 判斷
         summary[name] = summary.get(name, 0) + total
     
     # ---------------- 回傳結果 ----------------
@@ -448,10 +467,9 @@ def api_get_form(form_id, user_id):
         },
         "is_owner": is_owner,
         "is_viewer": is_viewer,
-        "summary_by_buyer": summary # summary 這裡沒有特別篩選，通常前端會自行處理
+        "summary_by_buyer": summary 
     }
     return jsonify(resp)
-
 @app.route("/api/add_viewer", methods=["POST"])
 def api_add_viewer():
     data = request.get_json()
