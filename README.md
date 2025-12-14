@@ -23,9 +23,9 @@ The system is designed around two main user scenarios: the Seller (Personal Shop
 
 The seller uses the system to manage the entire lifecycle of an order:
 
-1.  **Customer Management:** Maintain records of customers (name, phone, address, social media): 25, 38, 39, 40, 41].
-2.  **Order Creation:** Input new orders, including buyer email, item name, quantity, and price: 51, 52, 53]. The system automatically calculates the `total_amount`: 48].
-3.  **Status Updates:** Use the detailed order table to update logistics and payment status: 27]:
+1.  **Customer Management:** Maintain records of customers (name, phone, address, social media).
+2.  **Order Creation:** Input new orders, including buyer email, item name, quantity, and price. The system automatically calculates the `total_amount`.
+3.  **Status Updates:** Use the detailed order table to update logistics and payment status:
       * Mark payment as **Remitted (已匯款)**.
       * Mark fulfillment as **Shipped (已出貨)**, automatically recording the `shipped_date`.
 4.  **Reporting:** View automated reports, specifically the **Summary by Buyer**, to quickly reconcile total payments.
