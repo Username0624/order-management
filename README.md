@@ -1,6 +1,7 @@
 # 📦 Personal Shopping WMS: Warehouse & Logistics Management System
 
 * [youtube](https://youtu.be/FvuIHIclPz0z)
+*  [youtube chinese ver](https://youtu.be/sm2Pjg233Q)
 
 * [System website link](https://order-management-803v.onrender.com)
 
